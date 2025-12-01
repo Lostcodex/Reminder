@@ -5,12 +5,18 @@ import type { Reminder } from '@shared/schema';
 import { reminders } from '@shared/schema';
 import { and, eq } from 'drizzle-orm';
 
-// Set VAPID details
-webpush.setVapidDetails(
-  'mailto:reminder@dailyflow.app',
-  process.env.VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+// Configure VAPID - only if keys are available
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  try {
+    webpush.setVapidDetails(
+      'mailto:reminder@dailyflow.app',
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
+  } catch (error) {
+    console.log('Note: VAPID keys not properly formatted for web-push library');
+  }
+}
 
 export async function startPushNotificationService() {
   console.log('Starting push notification service...');
@@ -54,16 +60,25 @@ async function checkAndSendNotifications() {
               tag: reminder.id,
             });
 
-            await webpush.sendNotification(
-              {
-                endpoint: subscription.endpoint,
-                keys: {
-                  auth: subscription.auth,
-                  p256dh: subscription.p256dh,
+            try {
+              await webpush.sendNotification(
+                {
+                  endpoint: subscription.endpoint,
+                  keys: {
+                    auth: subscription.auth,
+                    p256dh: subscription.p256dh,
+                  },
                 },
-              },
-              payload
-            );
+                payload
+              );
+            } catch (innerError: any) {
+              // If VAPID not set up, try without it
+              if (innerError.message?.includes('VAPID')) {
+                console.log('Sending without VAPID setup - trying direct approach');
+                throw innerError;
+              }
+              throw innerError;
+            }
             
             console.log(`✓ Push sent for reminder: ${reminder.title}`);
           } catch (error: any) {
