@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter';
-import { Home, BarChart2, Settings, Plus } from 'lucide-react';
+import { Home, BarChart2, Settings, Plus, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ReactNode, useEffect } from 'react';
 import { AddReminderSheet } from '@/components/reminder/AddReminderSheet';
@@ -28,7 +28,7 @@ export function Layout({ children }: LayoutProps) {
     { icon: Home, label: 'Home', path: '/' },
     { icon: BarChart2, label: 'Stats', path: '/stats' },
     { icon: Settings, label: 'Settings', path: '/settings' },
-    { icon: Settings, label: 'Profile', path: '/profile' },
+    { icon: User, label: 'Profile', path: '/profile' },
   ];
 
   return (
