@@ -4,9 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useStore, Category, Repeat } from '@/lib/store';
-import { Droplets, BookOpen, Heart, Sparkles, Calendar as CalendarIcon } from 'lucide-react';
+import { useReminders } from '@/hooks/useReminders';
+import { Droplets, BookOpen, Heart, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -17,6 +16,7 @@ const reminderSchema = z.object({
   time: z.string(),
   repeat: z.enum(['None', 'Daily', 'Weekly']),
   notes: z.string().optional(),
+  completed: z.boolean().default(false),
 });
 
 type ReminderFormValues = z.infer<typeof reminderSchema>;
@@ -27,7 +27,7 @@ interface AddReminderSheetProps {
 }
 
 export function AddReminderSheet({ open, onOpenChange }: AddReminderSheetProps) {
-  const addReminder = useStore((state) => state.addReminder);
+  const { createReminder } = useReminders();
   
   const form = useForm<ReminderFormValues>({
     resolver: zodResolver(reminderSchema),
@@ -38,20 +38,21 @@ export function AddReminderSheet({ open, onOpenChange }: AddReminderSheetProps) 
       time: format(new Date(), 'HH:mm'),
       repeat: 'None',
       notes: '',
+      completed: false,
     },
   });
 
   const onSubmit = (data: ReminderFormValues) => {
-    addReminder(data);
+    createReminder(data);
     onOpenChange(false);
     form.reset();
   };
 
-  const categories: { id: Category; icon: any; label: string; color: string }[] = [
-    { id: 'Study', icon: BookOpen, label: 'Study', color: 'bg-cat-study text-cat-study-fg' },
-    { id: 'Water', icon: Droplets, label: 'Water', color: 'bg-cat-water text-cat-water-fg' },
-    { id: 'Health', icon: Heart, label: 'Health', color: 'bg-cat-health text-cat-health-fg' },
-    { id: 'Custom', icon: Sparkles, label: 'Custom', color: 'bg-cat-custom text-cat-custom-fg' },
+  const categories = [
+    { id: 'Study' as const, icon: BookOpen, label: 'Study', color: 'bg-cat-study text-cat-study-fg' },
+    { id: 'Water' as const, icon: Droplets, label: 'Water', color: 'bg-cat-water text-cat-water-fg' },
+    { id: 'Health' as const, icon: Heart, label: 'Health', color: 'bg-cat-health text-cat-health-fg' },
+    { id: 'Custom' as const, icon: Sparkles, label: 'Custom', color: 'bg-cat-custom text-cat-custom-fg' },
   ];
 
   return (
@@ -67,11 +68,11 @@ export function AddReminderSheet({ open, onOpenChange }: AddReminderSheetProps) 
               
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 
-                {/* Title Input */}
                 <div className="space-y-2">
                   <Input 
                     {...form.register('title')}
                     placeholder="What needs to be done?" 
+                    data-testid="input-title"
                     className="text-lg font-medium bg-muted/30 border-transparent focus:bg-white h-12 rounded-xl"
                   />
                   {form.formState.errors.title && (
@@ -79,12 +80,12 @@ export function AddReminderSheet({ open, onOpenChange }: AddReminderSheetProps) 
                   )}
                 </div>
 
-                {/* Categories Grid */}
                 <div className="grid grid-cols-4 gap-3">
                   {categories.map((cat) => (
                     <button
                       key={cat.id}
                       type="button"
+                      data-testid={`category-${cat.id.toLowerCase()}`}
                       onClick={() => form.setValue('category', cat.id)}
                       className={cn(
                         "flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-200",
@@ -99,13 +100,13 @@ export function AddReminderSheet({ open, onOpenChange }: AddReminderSheetProps) 
                   ))}
                 </div>
 
-                {/* Date & Time Row */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold uppercase text-muted-foreground ml-1">Date</label>
                     <Input 
                       type="date" 
                       {...form.register('date')}
+                      data-testid="input-date"
                       className="bg-muted/30 border-transparent focus:bg-white rounded-xl h-11"
                     />
                   </div>
@@ -114,17 +115,18 @@ export function AddReminderSheet({ open, onOpenChange }: AddReminderSheetProps) 
                     <Input 
                       type="time" 
                       {...form.register('time')}
+                      data-testid="input-time"
                       className="bg-muted/30 border-transparent focus:bg-white rounded-xl h-11"
                     />
                   </div>
                 </div>
 
-                {/* Repeat & Notes */}
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-1 col-span-1">
                     <label className="text-xs font-bold uppercase text-muted-foreground ml-1">Repeat</label>
                     <select 
                       {...form.register('repeat')}
+                      data-testid="select-repeat"
                       className="w-full h-11 rounded-xl px-3 bg-muted/30 border-transparent focus:bg-white text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20"
                     >
                       <option value="None">Once</option>
@@ -137,15 +139,20 @@ export function AddReminderSheet({ open, onOpenChange }: AddReminderSheetProps) 
                     <Input 
                       {...form.register('notes')}
                       placeholder="Add details..." 
+                      data-testid="input-notes"
                       className="bg-muted/30 border-transparent focus:bg-white rounded-xl h-11"
                     />
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full h-14 text-lg font-bold rounded-2xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 mt-4">
+                <Button 
+                  type="submit" 
+                  data-testid="button-submit-reminder"
+                  className="w-full h-14 text-lg font-bold rounded-2xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 mt-4"
+                >
                   Set Reminder
                 </Button>
-                <div className="h-8" /> {/* Spacer for bottom safe area */}
+                <div className="h-8" />
               </form>
             </div>
           </div>

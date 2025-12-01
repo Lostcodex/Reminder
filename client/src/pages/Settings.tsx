@@ -1,11 +1,15 @@
 import { Layout } from '@/components/layout/Layout';
 import { useStore } from '@/lib/store';
+import { useReminders } from '@/hooks/useReminders';
 import { Switch } from '@/components/ui/switch';
 import { Bell, Volume2, Moon, Trash2, ChevronRight, Shield, HelpCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export default function Settings() {
-  const { settings, updateSettings, deleteEverything } = useStore();
+  const { settings, updateSettings } = useStore((state) => ({
+    settings: state.settings,
+    updateSettings: state.updateSettings,
+  }));
+  const { deleteAllReminders } = useReminders();
 
   const SettingItem = ({ icon: Icon, label, right }: { icon: any, label: string, right: React.ReactNode }) => (
     <div className="flex items-center justify-between p-4 bg-white border border-border/50 first:rounded-t-2xl last:rounded-b-2xl not-last:border-b-0 hover:bg-muted/20 transition-colors">
@@ -25,7 +29,6 @@ export default function Settings() {
         <h1 className="text-3xl font-display font-extrabold text-foreground mb-8">Settings</h1>
 
         <div className="space-y-8">
-          {/* Preferences Section */}
           <section>
             <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 ml-1">Preferences</h2>
             <div className="shadow-sm rounded-2xl overflow-hidden">
@@ -36,6 +39,7 @@ export default function Settings() {
                   <Switch 
                     checked={settings.notifications} 
                     onCheckedChange={(checked) => updateSettings({ notifications: checked })} 
+                    data-testid="switch-notifications"
                   />
                 } 
               />
@@ -47,6 +51,7 @@ export default function Settings() {
                   <Switch 
                     checked={settings.vibration} 
                     onCheckedChange={(checked) => updateSettings({ vibration: checked })} 
+                    data-testid="switch-vibration"
                   />
                 } 
               />
@@ -58,13 +63,13 @@ export default function Settings() {
                   <Switch 
                     checked={settings.theme === 'dark'} 
                     onCheckedChange={(checked) => updateSettings({ theme: checked ? 'dark' : 'light' })} 
+                    data-testid="switch-darkmode"
                   />
                 } 
               />
             </div>
           </section>
 
-          {/* Support Section */}
           <section>
             <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 ml-1">Support</h2>
             <div className="shadow-sm rounded-2xl overflow-hidden">
@@ -82,14 +87,14 @@ export default function Settings() {
             </div>
           </section>
 
-          {/* Danger Zone */}
           <section>
             <button 
               onClick={() => {
                 if (confirm('Are you sure you want to delete all reminders? This cannot be undone.')) {
-                  deleteEverything();
+                  deleteAllReminders();
                 }
               }}
+              data-testid="button-delete-all"
               className="w-full p-4 rounded-2xl bg-red-50 text-red-600 font-bold flex items-center justify-center gap-2 hover:bg-red-100 transition-colors"
             >
               <Trash2 size={18} />

@@ -1,15 +1,16 @@
 import { motion } from 'framer-motion';
 import { Check, Droplets, BookOpen, Heart, Sparkles, Clock, RotateCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Reminder, useStore } from '@/lib/store';
+import { type Reminder } from '@shared/schema';
 import { format, parse } from 'date-fns';
+import { useReminders } from '@/hooks/useReminders';
 
 interface ReminderCardProps {
   reminder: Reminder;
 }
 
 export function ReminderCard({ reminder }: ReminderCardProps) {
-  const toggleReminder = useStore((state) => state.toggleReminder);
+  const { toggleReminder } = useReminders();
 
   const getCategoryStyles = (cat: string) => {
     switch (cat) {
@@ -41,10 +42,11 @@ export function ReminderCard({ reminder }: ReminderCardProps) {
         "group relative flex items-center gap-4 p-4 mb-3 rounded-2xl bg-card border border-border/50 shadow-sm transition-all duration-300 hover:shadow-md",
         reminder.completed && "opacity-60 grayscale-[0.5]"
       )}
+      data-testid={`reminder-${reminder.id}`}
     >
-      {/* Checkbox */}
       <button
         onClick={() => toggleReminder(reminder.id)}
+        data-testid={`toggle-${reminder.id}`}
         className={cn(
           "flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-all duration-300",
           reminder.completed 
@@ -55,7 +57,6 @@ export function ReminderCard({ reminder }: ReminderCardProps) {
         <Check size={20} strokeWidth={3} />
       </button>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span className={cn(
@@ -91,7 +92,6 @@ export function ReminderCard({ reminder }: ReminderCardProps) {
         </div>
       </div>
 
-      {/* Decorative Line */}
       <div className={cn(
         "absolute left-0 top-4 bottom-4 w-1 rounded-r-full",
         reminder.category === 'Study' && "bg-indigo-400",

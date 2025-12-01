@@ -2,7 +2,7 @@ import { Link, useLocation } from 'wouter';
 import { Home, BarChart2, Settings, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
-import { AddReminderSheet } from '../reminder/AddReminderSheet';
+import { AddReminderSheet } from '@/components/reminder/AddReminderSheet';
 import { useState } from 'react';
 
 interface LayoutProps {
@@ -35,12 +35,15 @@ export function Layout({ children }: LayoutProps) {
               const isActive = location === item.path;
               return (
                 <Link key={item.path} href={item.path}>
-                  <a className={cn(
-                    "flex flex-col items-center justify-center gap-1 transition-all duration-300",
-                    isActive ? "text-primary scale-110" : "text-muted-foreground hover:text-primary/70"
-                  )}>
+                  <button 
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1 transition-all duration-300",
+                      isActive ? "text-primary scale-110" : "text-muted-foreground hover:text-primary/70"
+                    )}
+                    data-testid={`nav-${item.label.toLowerCase()}`}
+                  >
                     <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-                  </a>
+                  </button>
                 </Link>
               );
             })}
@@ -48,6 +51,7 @@ export function Layout({ children }: LayoutProps) {
             {/* Floating Add Button (Center-ish) */}
             <button 
               onClick={() => setIsAddOpen(true)}
+              data-testid="button-add-reminder"
               className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-white p-3 rounded-full shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all duration-300"
             >
               <Plus size={28} strokeWidth={3} />

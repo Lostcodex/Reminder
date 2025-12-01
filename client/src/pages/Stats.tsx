@@ -1,16 +1,15 @@
 import { Layout } from '@/components/layout/Layout';
-import { useStore } from '@/lib/store';
+import { useReminders } from '@/hooks/useReminders';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Award, TrendingUp, Calendar, CheckCircle2 } from 'lucide-react';
 
 export default function Stats() {
-  const reminders = useStore((state) => state.reminders);
+  const { reminders, isLoading } = useReminders();
   
   const completedCount = reminders.filter(r => r.completed).length;
   const totalCount = reminders.length;
   const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  // Mock data for the chart since we don't have real historical data in this simple store
   const data = [
     { name: 'Mon', score: 65 },
     { name: 'Tue', score: 80 },
@@ -21,12 +20,21 @@ export default function Stats() {
     { name: 'Sun', score: completionRate },
   ];
 
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="px-6 pt-12 pb-6">
         <h1 className="text-3xl font-display font-extrabold text-foreground mb-8">Your Progress</h1>
 
-        {/* Hero Card */}
         <div className="bg-primary text-primary-foreground rounded-[32px] p-8 shadow-xl shadow-primary/20 mb-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/5 rounded-full -ml-12 -mb-12 blur-xl" />
@@ -41,7 +49,6 @@ export default function Stats() {
           </div>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 gap-4 mb-8">
           <div className="bg-white p-5 rounded-3xl border border-border/50 shadow-sm">
             <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-3">
@@ -60,7 +67,6 @@ export default function Stats() {
           </div>
         </div>
 
-        {/* Chart Section */}
         <div className="bg-white p-6 rounded-[32px] border border-border/50 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
             <Calendar size={18} className="text-muted-foreground" />
@@ -83,7 +89,7 @@ export default function Stats() {
                 />
                 <Bar dataKey="score" radius={[6, 6, 6, 6]} barSize={12}>
                   {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === 6 ? 'var(--color-primary)' : '#cbd5e1'} />
+                    <Cell key={`cell-${index}`} fill={index === 6 ? 'hsl(250 85% 65%)' : '#cbd5e1'} />
                   ))}
                 </Bar>
               </BarChart>
