@@ -2,31 +2,41 @@ import { Layout } from '@/components/layout/Layout';
 import { useStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Bell, Moon, Sun } from 'lucide-react';
+import { Bell, Moon, Sun, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { useState } from 'react';
 
 export default function Settings() {
   const { settings, updateSettings } = useStore();
+  const [showNotificationGuide, setShowNotificationGuide] = useState(false);
+
+  const handleEnableNotifications = async () => {
+    if (Notification.permission === 'granted') {
+      // Already granted, just test
+      handleTestNotification();
+      return;
+    }
+
+    if (Notification.permission === 'denied') {
+      setShowNotificationGuide(true);
+      return;
+    }
+
+    // Request permission
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      updateSettings({ notifications: true });
+      toast.success('Notifications enabled!');
+      setTimeout(handleTestNotification, 500);
+    } else if (permission === 'denied') {
+      setShowNotificationGuide(true);
+    }
+  };
 
   const handleTestNotification = async () => {
-    // Check if notifications are enabled
-    if (!settings.notifications) {
-      toast.error('Please enable notifications first');
+    if (Notification.permission !== 'granted') {
+      toast.error('Notification permission not granted');
       return;
-    }
-
-    // Request permission if needed
-    if (Notification.permission === 'denied') {
-      toast.error('Notification permission denied. Please enable in browser settings.');
-      return;
-    }
-
-    if (Notification.permission === 'default') {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        toast.error('Notification permission denied');
-        return;
-      }
     }
 
     // Play alarm sound
@@ -65,7 +75,7 @@ export default function Settings() {
       vibrate: [300, 100, 300, 100, 300],
     });
 
-    toast.success('Test notification sent! Check your screen.');
+    toast.success('Test notification sent!');
   };
 
   return (
@@ -86,23 +96,56 @@ export default function Settings() {
                   <p className="text-xs text-muted-foreground mt-1">Get alerts when reminders are due</p>
                 </div>
               </div>
-              <Switch
-                checked={settings.notifications}
-                onCheckedChange={(checked) => updateSettings({ notifications: checked })}
-                data-testid="switch-notifications"
-              />
             </div>
-            {settings.notifications && (
+            <div className="flex gap-3">
               <Button
-                onClick={handleTestNotification}
-                variant="outline"
-                className="w-full h-10 rounded-xl border-primary/30 hover:bg-primary/10"
-                data-testid="button-test-notification"
+                onClick={handleEnableNotifications}
+                className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90"
+                data-testid="button-enable-notifications"
               >
-                Test Notification
+                {Notification.permission === 'granted' ? 'Test Notification' : 'Enable Notifications'}
               </Button>
-            )}
+              {Notification.permission === 'granted' && (
+                <Switch
+                  checked={settings.notifications}
+                  onCheckedChange={(checked) => updateSettings({ notifications: checked })}
+                  data-testid="switch-notifications"
+                  className="self-center"
+                />
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Status: <span className="font-bold">{Notification.permission === 'granted' ? '✓ Enabled' : Notification.permission === 'denied' ? '✗ Blocked' : 'Not set'}</span>
+            </p>
           </div>
+
+          {/* Permission Denied Guide */}
+          {showNotificationGuide && Notification.permission === 'denied' && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-3xl p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <Info size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-bold text-red-600 mb-2">Notifications are blocked</h3>
+                  <p className="text-sm text-red-600/80 mb-3">Follow these steps to enable notifications:</p>
+                  
+                  <ol className="text-sm text-red-600/80 space-y-2 ml-4 list-decimal">
+                    <li>Look at the address bar at the top of your browser</li>
+                    <li>Click the <span className="font-bold">lock icon</span> or <span className="font-bold">info icon</span></li>
+                    <li>Find "Notifications" in the dropdown menu</li>
+                    <li>Click and select <span className="font-bold">"Allow"</span></li>
+                    <li>Refresh the page and try again</li>
+                  </ol>
+                </div>
+              </div>
+              <Button
+                onClick={() => setShowNotificationGuide(false)}
+                variant="outline"
+                className="w-full h-10 rounded-xl border-red-500/30 text-red-600 hover:bg-red-500/10"
+              >
+                Close Guide
+              </Button>
+            </div>
+          )}
 
           {/* Theme */}
           <div className="bg-card p-6 rounded-3xl border border-border/50 shadow-sm">
