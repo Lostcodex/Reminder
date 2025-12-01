@@ -1,4 +1,4 @@
-import { type Reminder, type InsertReminder, type User, reminders, users } from "@shared/schema";
+import { type Reminder, type InsertReminder, type User, type PushSubscription, type InsertPushSubscription, reminders, users, pushSubscriptions } from "@shared/schema";
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 import { eq } from "drizzle-orm";
@@ -19,6 +19,10 @@ export interface IStorage {
   getOrCreateUser(sessionId: string): Promise<User>;
   getUserBySessionId(sessionId: string): Promise<User | undefined>;
   updateUserName(userId: string, name: string): Promise<User | undefined>;
+
+  createPushSubscription(subscription: InsertPushSubscription): Promise<PushSubscription>;
+  getPushSubscriptionsByUserId(userId: string): Promise<PushSubscription[]>;
+  deletePushSubscription(endpoint: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -90,6 +94,20 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return result[0];
+  }
+
+  async createPushSubscription(subscription: InsertPushSubscription): Promise<PushSubscription> {
+    const result = await db.insert(pushSubscriptions).values(subscription).returning();
+    return result[0];
+  }
+
+  async getPushSubscriptionsByUserId(userId: string): Promise<PushSubscription[]> {
+    return await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, userId));
+  }
+
+  async deletePushSubscription(endpoint: string): Promise<boolean> {
+    const result = await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint)).returning();
+    return result.length > 0;
   }
 }
 

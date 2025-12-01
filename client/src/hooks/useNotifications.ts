@@ -1,17 +1,25 @@
 import { useEffect } from 'react';
 import { useReminders } from './useReminders';
 import { useStore } from '@/lib/store';
+import { useUserStore } from '@/lib/userStore';
 
 export function useNotifications() {
   const { reminders } = useReminders();
   const notificationsEnabled = useStore((state) => state.settings.notifications);
+  const userId = useUserStore((state) => state.id);
 
   useEffect(() => {
-    if (!notificationsEnabled) return;
+    if (!notificationsEnabled || !userId) return;
 
     // Request notification permission if not already granted
     if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          subscribeToPushNotifications();
+        }
+      });
+    } else if (Notification.permission === 'granted') {
+      subscribeToPushNotifications();
     }
 
     // Register service worker
@@ -20,9 +28,9 @@ export function useNotifications() {
         console.log('Service Worker registration failed:', err);
       });
     }
-  }, [notificationsEnabled]);
+  }, [notificationsEnabled, userId]);
 
-  // Check for due reminders periodically
+  // Check for due reminders periodically (fallback for browser open)
   useEffect(() => {
     if (!notificationsEnabled || reminders.length === 0) return;
 
@@ -55,6 +63,69 @@ export function useNotifications() {
 
     return () => clearInterval(checkReminders);
   }, [reminders, notificationsEnabled]);
+}
+
+async function subscribeToPushNotifications() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.log('Push notifications not supported');
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    const existingSubscription = await registration.pushManager.getSubscription();
+    
+    if (existingSubscription) {
+      console.log('Already subscribed to push notifications');
+      return;
+    }
+
+    // Get VAPID public key from server
+    const keyResponse = await fetch('/api/push/vapid-public-key');
+    const { publicKey } = await keyResponse.json();
+
+    // Convert public key to Uint8Array
+    const convertedVapidKey = urlBase64ToUint8Array(publicKey);
+
+    // Subscribe to push notifications
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: convertedVapidKey,
+    });
+
+    // Send subscription to server
+    await fetch('/api/push/subscribe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Session-Id': localStorage.getItem('sessionId') || '',
+      },
+      body: JSON.stringify({
+        endpoint: subscription.endpoint,
+        auth: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')))),
+        p256dh: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))),
+      }),
+    });
+
+    console.log('Successfully subscribed to push notifications');
+  } catch (error) {
+    console.error('Failed to subscribe to push notifications:', error);
+  }
+}
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
 }
 
 function playAlarmSound() {

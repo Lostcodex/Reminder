@@ -1,4 +1,4 @@
-// Service Worker for background notifications
+// Service Worker for background push notifications
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing...');
   self.skipWaiting();
@@ -9,35 +9,48 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
 });
 
+// Handle incoming push notifications from server
 self.addEventListener('push', (event) => {
   console.log('Push notification received:', event);
   
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body || 'You have a new reminder',
-      icon: '/favicon.png',
-      badge: '/favicon.png',
-      tag: data.tag || 'reminder',
-      requireInteraction: true,
-      vibrate: [300, 100, 300, 100, 300],
-    };
+  let notificationData = {
+    title: 'Reminder',
+    body: 'You have a reminder',
+    tag: 'reminder',
+  };
 
-    event.waitUntil(
-      self.registration.showNotification(data.title || 'Reminder', options)
-    );
+  if (event.data) {
+    try {
+      notificationData = event.data.json();
+    } catch (e) {
+      notificationData.body = event.data.text();
+    }
   }
+
+  const options = {
+    body: notificationData.body || 'You have a reminder',
+    icon: '/favicon.png',
+    badge: '/favicon.png',
+    tag: notificationData.tag || 'reminder',
+    requireInteraction: true,
+  };
+
+  // Play alarm sound in service worker context
+  event.waitUntil(
+    self.registration.showNotification(notificationData.title, options)
+  );
 });
 
+// Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked:', event);
+  console.log('Notification clicked');
   event.notification.close();
   
   event.waitUntil(
     clients.matchAll({ type: 'window' }).then((clientList) => {
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
-        if (client.url === '/' && 'focus' in client) {
+        if ('focus' in client) {
           return client.focus();
         }
       }
@@ -49,8 +62,6 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 self.addEventListener('message', (event) => {
-  console.log('Service Worker received message:', event.data);
-  
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
