@@ -48,7 +48,7 @@ export function useNotifications() {
             badge: '/favicon.png',
             tag: reminder.id,
             requireInteraction: true,
-            vibrate: [300, 100, 300, 100, 300] as VibratePattern,
+            vibrate: [300, 100, 300, 100, 300],
           });
         }
       });

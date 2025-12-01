@@ -66,14 +66,16 @@ export default function Settings() {
     }
 
     // Show test notification
-    new Notification('Test Notification', {
-      body: 'This is how your reminders will alert you! 🔔',
-      icon: '/favicon.png',
-      badge: '/favicon.png',
-      tag: 'test-notification',
-      requireInteraction: true,
-      vibrate: [300, 100, 300, 100, 300],
-    });
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      new Notification('Test Notification', {
+        body: 'This is how your reminders will alert you! 🔔',
+        icon: '/favicon.png',
+        badge: '/favicon.png',
+        tag: 'test-notification',
+        requireInteraction: true,
+        vibrate: [300, 100, 300, 100, 300],
+      });
+    }
 
     toast.success('Test notification sent!');
   };
