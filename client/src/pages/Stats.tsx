@@ -12,6 +12,32 @@ export default function Stats() {
   const totalCount = reminders.length;
   const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
+  // Calculate streak
+  const calculateStreak = () => {
+    let streak = 0;
+    const today = new Date();
+    
+    for (let i = 0; i < 365; i++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(checkDate.getDate() - i);
+      const dateStr = checkDate.toISOString().split('T')[0];
+      
+      const dayReminders = reminders.filter(r => r.date === dateStr);
+      if (dayReminders.length === 0) break;
+      
+      const allCompleted = dayReminders.every(r => r.completed);
+      if (allCompleted) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    
+    return streak;
+  };
+
+  const streak = calculateStreak();
+
   const data = [
     { name: 'Mon', score: 65 },
     { name: 'Tue', score: 80 },
@@ -46,8 +72,10 @@ export default function Stats() {
               <Award size={16} />
               Current Streak
             </div>
-            <div className="text-5xl font-black mb-1">5 Days</div>
-            <p className="text-primary-foreground/80 font-medium">You're on fire! Keep it up.</p>
+            <div className="text-5xl font-black mb-1">{streak} {streak === 1 ? 'Day' : 'Days'}</div>
+            <p className="text-primary-foreground/80 font-medium">
+              {streak === 0 ? 'Start your streak today!' : streak > 0 ? "You're on fire! Keep it up." : 'Keep building your streak!'}
+            </p>
           </div>
         </div>
 
