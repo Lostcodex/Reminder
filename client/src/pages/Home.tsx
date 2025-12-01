@@ -18,6 +18,8 @@ export default function Home() {
   const userName = useUserStore((state) => state.name);
   
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
@@ -56,8 +58,19 @@ export default function Home() {
     );
   }
 
+  const handleAddOpenChange = (open: boolean) => {
+    setIsAddOpen(open);
+    if (!open) {
+      setEditingReminder(null);
+    }
+  };
+
   return (
-    <Layout>
+    <Layout 
+      isAddOpen={isAddOpen}
+      onAddOpenChange={handleAddOpenChange}
+      editingReminder={editingReminder}
+    >
       <div className="px-6 pt-12 pb-6">
         {/* Date Navigation */}
         <div className="flex items-center justify-between mb-8">
@@ -157,6 +170,10 @@ export default function Home() {
                   <ReminderCard 
                     reminder={reminder} 
                     onToggle={toggleReminder}
+                    onEdit={(r) => {
+                      setEditingReminder(r);
+                      setIsAddOpen(true);
+                    }}
                     onDelete={deleteReminder}
                   />
                 </div>

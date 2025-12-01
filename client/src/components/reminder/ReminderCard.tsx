@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Check, Droplets, BookOpen, Heart, Sparkles, Clock, RotateCw, Trash2 } from 'lucide-react';
+import { Check, Droplets, BookOpen, Heart, Sparkles, Clock, RotateCw, Trash2, Edit2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type Reminder } from '@shared/schema';
 import { format, parse } from 'date-fns';
@@ -7,10 +7,11 @@ import { format, parse } from 'date-fns';
 interface ReminderCardProps {
   reminder: Reminder;
   onToggle: (id: string) => void;
+  onEdit?: (reminder: Reminder) => void;
   onDelete?: (id: string) => void;
 }
 
-export function ReminderCard({ reminder, onToggle, onDelete }: ReminderCardProps) {
+export function ReminderCard({ reminder, onToggle, onEdit, onDelete }: ReminderCardProps) {
   const getCategoryStyles = (cat: string) => {
     switch (cat) {
       case 'Study': return 'bg-cat-study text-cat-study-fg border-cat-study-fg/20';
@@ -104,6 +105,15 @@ export function ReminderCard({ reminder, onToggle, onDelete }: ReminderCardProps
         )} />
       </motion.div>
 
+      {onEdit && (
+        <button
+          onClick={() => onEdit(reminder)}
+          data-testid={`edit-${reminder.id}`}
+          className="p-2 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary flex-shrink-0"
+        >
+          <Edit2 size={20} />
+        </button>
+      )}
       {onDelete && (
         <button
           onClick={() => {

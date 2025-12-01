@@ -24,14 +24,23 @@ type ReminderFormValues = z.infer<typeof reminderSchema>;
 interface AddReminderSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingReminder?: any;
 }
 
-export function AddReminderSheet({ open, onOpenChange }: AddReminderSheetProps) {
-  const { createReminder } = useReminders();
+export function AddReminderSheet({ open, onOpenChange, editingReminder }: AddReminderSheetProps) {
+  const { createReminder, updateReminder } = useReminders();
   
   const form = useForm<ReminderFormValues>({
     resolver: zodResolver(reminderSchema),
-    defaultValues: {
+    defaultValues: editingReminder ? {
+      title: editingReminder.title,
+      category: editingReminder.category,
+      date: editingReminder.date,
+      time: editingReminder.time,
+      repeat: editingReminder.repeat,
+      notes: editingReminder.notes || '',
+      completed: editingReminder.completed,
+    } : {
       title: '',
       category: 'Study',
       date: format(new Date(), 'yyyy-MM-dd'),
@@ -43,7 +52,11 @@ export function AddReminderSheet({ open, onOpenChange }: AddReminderSheetProps) 
   });
 
   const onSubmit = (data: ReminderFormValues) => {
-    createReminder(data);
+    if (editingReminder) {
+      updateReminder(editingReminder.id, data);
+    } else {
+      createReminder(data);
+    }
     onOpenChange(false);
     form.reset();
   };
@@ -64,7 +77,7 @@ export function AddReminderSheet({ open, onOpenChange }: AddReminderSheetProps) 
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-muted mb-8" />
             
             <div className="max-w-md mx-auto">
-              <Drawer.Title className="text-2xl font-display font-bold mb-6 text-center">New Reminder</Drawer.Title>
+              <Drawer.Title className="text-2xl font-display font-bold mb-6 text-center">{editingReminder ? 'Edit Reminder' : 'New Reminder'}</Drawer.Title>
               
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 

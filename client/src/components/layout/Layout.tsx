@@ -8,11 +8,16 @@ import { useStore } from '@/lib/store';
 
 interface LayoutProps {
   children: ReactNode;
+  isAddOpen?: boolean;
+  onAddOpenChange?: (open: boolean) => void;
+  editingReminder?: any;
 }
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ children, isAddOpen: externalIsAddOpen, onAddOpenChange, editingReminder }: LayoutProps) {
   const [location] = useLocation();
-  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [internalIsAddOpen, setInternalIsAddOpen] = useState(false);
+  const isAddOpen = externalIsAddOpen ?? internalIsAddOpen;
+  const setIsAddOpen = onAddOpenChange ?? setInternalIsAddOpen;
   const theme = useStore((state) => state.settings.theme);
 
   // Ensure theme is applied on mount
@@ -68,7 +73,7 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </div>
 
-        <AddReminderSheet open={isAddOpen} onOpenChange={setIsAddOpen} />
+        <AddReminderSheet open={isAddOpen} onOpenChange={setIsAddOpen} editingReminder={editingReminder} />
       </div>
     </div>
   );
