@@ -1,15 +1,13 @@
 import { useEffect } from 'react';
 import { useReminders } from './useReminders';
 import { useStore } from '@/lib/store';
-import { useUserStore } from '@/lib/userStore';
 
 export function useNotifications() {
   const { reminders } = useReminders();
-  const notificationsEnabled = useStore((state) => state.settings.notifications);
-  const userId = useUserStore((state) => state.id);
+  const notificationsEnabled = useStore((state: any) => state.settings.notifications);
 
   useEffect(() => {
-    if (!notificationsEnabled || !userId) return;
+    if (!notificationsEnabled) return;
 
     // Request notification permission if not already granted
     if ('Notification' in window && Notification.permission === 'default') {
@@ -28,7 +26,7 @@ export function useNotifications() {
         console.log('Service Worker registration failed:', err);
       });
     }
-  }, [notificationsEnabled, userId]);
+  }, [notificationsEnabled]);
 
   // Check for due reminders periodically (fallback for browser open)
   useEffect(() => {
@@ -94,6 +92,12 @@ async function subscribeToPushNotifications() {
     });
 
     // Send subscription to server
+    const authKey = subscription.getKey('auth');
+    const p256dhKey = subscription.getKey('p256dh');
+    
+    const authArray = authKey ? Array.from(new Uint8Array(authKey)) : [];
+    const p256dhArray = p256dhKey ? Array.from(new Uint8Array(p256dhKey)) : [];
+    
     await fetch('/api/push/subscribe', {
       method: 'POST',
       headers: {
@@ -102,8 +106,8 @@ async function subscribeToPushNotifications() {
       },
       body: JSON.stringify({
         endpoint: subscription.endpoint,
-        auth: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')))),
-        p256dh: btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))),
+        auth: btoa(String.fromCharCode(...authArray)),
+        p256dh: btoa(String.fromCharCode(...p256dhArray)),
       }),
     });
 
