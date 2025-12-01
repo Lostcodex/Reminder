@@ -60,7 +60,7 @@ export function Layout({ children }: LayoutProps) {
             <button 
               onClick={() => setIsAddOpen(true)}
               data-testid="button-add-reminder"
-              className="absolute -top-6 left-1/2 -translate-x-1/2 bg-primary text-white p-3 rounded-full shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all duration-300"
+              className="absolute -top-14 left-1/2 -translate-x-1/2 bg-primary text-white p-4 rounded-full shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all duration-300"
             >
               <Plus size={28} strokeWidth={3} />
             </button>
