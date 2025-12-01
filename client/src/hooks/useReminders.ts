@@ -43,6 +43,18 @@ export function useReminders() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<InsertReminder> }) =>
+      api.reminders.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      toast.success('Reminder updated!');
+    },
+    onError: () => {
+      toast.error('Failed to update reminder');
+    },
+  });
+
   const deleteAllMutation = useMutation({
     mutationFn: api.reminders.deleteAll,
     onSuccess: () => {
@@ -58,6 +70,7 @@ export function useReminders() {
     reminders: remindersQuery.data ?? [],
     isLoading: remindersQuery.isLoading,
     createReminder: (data: InsertReminder) => createMutation.mutate(data),
+    updateReminder: (id: string, data: Partial<InsertReminder>) => updateMutation.mutate({ id, data }),
     toggleReminder: (id: string) => toggleMutation.mutate(id),
     deleteReminder: (id: string) => deleteMutation.mutate(id),
     deleteAllReminders: () => deleteAllMutation.mutate(),

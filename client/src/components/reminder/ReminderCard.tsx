@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Check, Droplets, BookOpen, Heart, Sparkles, Clock, RotateCw } from 'lucide-react';
+import { Check, Droplets, BookOpen, Heart, Sparkles, Clock, RotateCw, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type Reminder } from '@shared/schema';
 import { format, parse } from 'date-fns';
@@ -7,9 +7,10 @@ import { format, parse } from 'date-fns';
 interface ReminderCardProps {
   reminder: Reminder;
   onToggle: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function ReminderCard({ reminder, onToggle }: ReminderCardProps) {
+export function ReminderCard({ reminder, onToggle, onDelete }: ReminderCardProps) {
   const getCategoryStyles = (cat: string) => {
     switch (cat) {
       case 'Study': return 'bg-cat-study text-cat-study-fg border-cat-study-fg/20';
@@ -97,6 +98,20 @@ export function ReminderCard({ reminder, onToggle }: ReminderCardProps) {
         reminder.category === 'Health' && "bg-emerald-400",
         reminder.category === 'Custom' && "bg-orange-400",
       )} />
+
+      {onDelete && (
+        <button
+          onClick={() => {
+            if (confirm('Delete this reminder?')) {
+              onDelete(reminder.id);
+            }
+          }}
+          data-testid={`delete-${reminder.id}`}
+          className="p-2 rounded-lg hover:bg-red-500/10 transition-colors text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <Trash2 size={16} />
+        </button>
+      )}
     </motion.div>
   );
 }

@@ -9,9 +9,10 @@ import { Droplets, Sun, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-r
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import type { Reminder } from '@shared/schema';
 
 export default function Home() {
-  const { reminders, isLoading, createReminder, toggleReminder } = useReminders();
+  const { reminders, isLoading, createReminder, toggleReminder, updateReminder, deleteReminder } = useReminders();
   useNotifications();
   useInitUser();
   const userName = useUserStore((state) => state.name);
@@ -153,7 +154,11 @@ export default function Home() {
                     reminder.completed ? "border-green-500 bg-green-500" : "border-primary"
                   )} />
                   
-                  <ReminderCard reminder={reminder} onToggle={toggleReminder} />
+                  <ReminderCard 
+                    reminder={reminder} 
+                    onToggle={toggleReminder}
+                    onDelete={deleteReminder}
+                  />
                 </div>
               ))
             )}

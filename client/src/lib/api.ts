@@ -28,6 +28,16 @@ export const api = {
       return res.json();
     },
 
+    update: async (id: string, reminder: Partial<InsertReminder>): Promise<Reminder> => {
+      const res = await fetch(`${API_BASE}/reminders/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...getHeaders() },
+        body: JSON.stringify(reminder),
+      });
+      if (!res.ok) throw new Error('Failed to update reminder');
+      return res.json();
+    },
+
     toggle: async (id: string): Promise<Reminder> => {
       const res = await fetch(`${API_BASE}/reminders/${id}/toggle`, {
         method: 'PATCH',

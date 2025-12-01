@@ -110,6 +110,25 @@ export async function registerRoutes(
     }
   });
 
+  // Update reminder
+  app.patch("/api/reminders/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validated = insertReminderSchema.partial().parse(req.body);
+      const reminder = await storage.updateReminder(id, validated);
+      if (!reminder) {
+        return res.status(404).json({ error: "Reminder not found" });
+      }
+      res.json(reminder);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid reminder data", details: error.errors });
+      }
+      console.error("Error updating reminder:", error);
+      res.status(500).json({ error: "Failed to update reminder" });
+    }
+  });
+
   // Toggle reminder completion
   app.patch("/api/reminders/:id/toggle", async (req, res) => {
     try {
