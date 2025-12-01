@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 export function useReminders() {
   const queryClient = useQueryClient();
 
-  const { data: reminders = [], isLoading } = useQuery({
+  const remindersQuery = useQuery({
     queryKey: ['reminders'],
     queryFn: api.reminders.getAll,
   });
@@ -55,11 +55,11 @@ export function useReminders() {
   });
 
   return {
-    reminders,
-    isLoading,
-    createReminder: createMutation.mutate,
-    toggleReminder: toggleMutation.mutate,
-    deleteReminder: deleteMutation.mutate,
-    deleteAllReminders: deleteAllMutation.mutate,
+    reminders: remindersQuery.data ?? [],
+    isLoading: remindersQuery.isLoading,
+    createReminder: (data: InsertReminder) => createMutation.mutate(data),
+    toggleReminder: (id: string) => toggleMutation.mutate(id),
+    deleteReminder: (id: string) => deleteMutation.mutate(id),
+    deleteAllReminders: () => deleteAllMutation.mutate(),
   };
 }

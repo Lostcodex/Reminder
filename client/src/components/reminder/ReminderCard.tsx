@@ -3,15 +3,13 @@ import { Check, Droplets, BookOpen, Heart, Sparkles, Clock, RotateCw } from 'luc
 import { cn } from '@/lib/utils';
 import { type Reminder } from '@shared/schema';
 import { format, parse } from 'date-fns';
-import { useReminders } from '@/hooks/useReminders';
 
 interface ReminderCardProps {
   reminder: Reminder;
+  onToggle: (id: string) => void;
 }
 
-export function ReminderCard({ reminder }: ReminderCardProps) {
-  const { toggleReminder } = useReminders();
-
+export function ReminderCard({ reminder, onToggle }: ReminderCardProps) {
   const getCategoryStyles = (cat: string) => {
     switch (cat) {
       case 'Study': return 'bg-cat-study text-cat-study-fg border-cat-study-fg/20';
@@ -45,7 +43,7 @@ export function ReminderCard({ reminder }: ReminderCardProps) {
       data-testid={`reminder-${reminder.id}`}
     >
       <button
-        onClick={() => toggleReminder(reminder.id)}
+        onClick={() => onToggle(reminder.id)}
         data-testid={`toggle-${reminder.id}`}
         className={cn(
           "flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-all duration-300",

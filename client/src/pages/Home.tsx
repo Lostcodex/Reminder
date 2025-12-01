@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export default function Home() {
-  const { reminders, isLoading, createReminder } = useReminders();
+  const { reminders, isLoading, createReminder, toggleReminder } = useReminders();
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
 
@@ -50,7 +50,7 @@ export default function Home() {
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-3xl font-display font-extrabold text-foreground">
-              Hello, Friend! <span className="inline-block animate-wave">👋</span>
+              Hello, Friend! <span className="inline-block">👋</span>
             </h1>
             <p className="text-muted-foreground font-medium mt-1">
               You have {todaysReminders.length - completedCount} tasks remaining today.
@@ -120,7 +120,7 @@ export default function Home() {
                     reminder.completed ? "border-green-500 bg-green-500" : "border-primary"
                   )} />
                   
-                  <ReminderCard reminder={reminder} />
+                  <ReminderCard reminder={reminder} onToggle={toggleReminder} />
                 </div>
               ))
             )}

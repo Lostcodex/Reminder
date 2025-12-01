@@ -2,17 +2,11 @@ import { Layout } from '@/components/layout/Layout';
 import { useStore } from '@/lib/store';
 import { useReminders } from '@/hooks/useReminders';
 import { Switch } from '@/components/ui/switch';
-import { Bell, Volume2, Moon, Trash2, ChevronRight, Shield, HelpCircle } from 'lucide-react';
+import { Bell, Volume2, Moon, Trash2, ChevronRight, Shield, HelpCircle, LucideIcon } from 'lucide-react';
 
-export default function Settings() {
-  const { settings, updateSettings } = useStore((state) => ({
-    settings: state.settings,
-    updateSettings: state.updateSettings,
-  }));
-  const { deleteAllReminders } = useReminders();
-
-  const SettingItem = ({ icon: Icon, label, right }: { icon: any, label: string, right: React.ReactNode }) => (
-    <div className="flex items-center justify-between p-4 bg-white border border-border/50 first:rounded-t-2xl last:rounded-b-2xl not-last:border-b-0 hover:bg-muted/20 transition-colors">
+function SettingItem({ icon: Icon, label, right }: { icon: LucideIcon, label: string, right: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between p-4 bg-white hover:bg-muted/20 transition-colors">
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
           <Icon size={16} />
@@ -22,6 +16,12 @@ export default function Settings() {
       {right}
     </div>
   );
+}
+
+export default function Settings() {
+  const settings = useStore((state) => state.settings);
+  const updateSettings = useStore((state) => state.updateSettings);
+  const { deleteAllReminders } = useReminders();
 
   return (
     <Layout>
@@ -31,7 +31,7 @@ export default function Settings() {
         <div className="space-y-8">
           <section>
             <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 ml-1">Preferences</h2>
-            <div className="shadow-sm rounded-2xl overflow-hidden">
+            <div className="shadow-sm rounded-2xl overflow-hidden border border-border/50 divide-y divide-border/50">
               <SettingItem 
                 icon={Bell} 
                 label="Notifications" 
@@ -43,7 +43,6 @@ export default function Settings() {
                   />
                 } 
               />
-              <div className="h-px bg-border/50 mx-4" />
               <SettingItem 
                 icon={Volume2} 
                 label="Sound & Vibration" 
@@ -55,7 +54,6 @@ export default function Settings() {
                   />
                 } 
               />
-              <div className="h-px bg-border/50 mx-4" />
               <SettingItem 
                 icon={Moon} 
                 label="Dark Mode" 
@@ -72,13 +70,12 @@ export default function Settings() {
 
           <section>
             <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 ml-1">Support</h2>
-            <div className="shadow-sm rounded-2xl overflow-hidden">
+            <div className="shadow-sm rounded-2xl overflow-hidden border border-border/50 divide-y divide-border/50">
               <SettingItem 
                 icon={Shield} 
                 label="Privacy Policy" 
                 right={<ChevronRight size={18} className="text-muted-foreground" />} 
               />
-              <div className="h-px bg-border/50 mx-4" />
               <SettingItem 
                 icon={HelpCircle} 
                 label="Help & FAQ" 
