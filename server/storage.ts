@@ -16,8 +16,9 @@ export interface IStorage {
   deleteReminder(id: string): Promise<boolean>;
   deleteAllReminders(userId: string): Promise<boolean>;
   
-  getOrCreateUser(sessionId: string): Promise<User>;
-  getUserBySessionId(sessionId: string): Promise<User | undefined>;
+  registerUser(username: string, passwordHash: string, name?: string): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserById(id: string): Promise<User | undefined>;
   updateUserName(userId: string, name: string): Promise<User | undefined>;
 
   createPushSubscription(subscription: InsertPushSubscription): Promise<PushSubscription>;
@@ -69,22 +70,22 @@ export class DatabaseStorage implements IStorage {
     return true;
   }
 
-  async getOrCreateUser(sessionId: string): Promise<User> {
-    let user = await this.getUserBySessionId(sessionId);
-    
-    if (!user) {
-      const result = await db.insert(users).values({
-        sessionId,
-        name: 'Friend',
-      }).returning();
-      user = result[0];
-    }
-    
-    return user;
+  async registerUser(username: string, passwordHash: string, name?: string): Promise<User> {
+    const result = await db.insert(users).values({
+      username,
+      passwordHash,
+      name: name || 'Friend',
+    }).returning();
+    return result[0];
   }
 
-  async getUserBySessionId(sessionId: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.sessionId, sessionId));
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
+  }
+
+  async getUserById(id: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
     return result[0];
   }
 
