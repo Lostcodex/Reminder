@@ -1,10 +1,12 @@
 import { Layout } from '@/components/layout/Layout';
 import { useReminders } from '@/hooks/useReminders';
+import { useStore } from '@/lib/store';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Award, TrendingUp, Calendar, CheckCircle2 } from 'lucide-react';
 
 export default function Stats() {
   const { reminders, isLoading } = useReminders();
+  const theme = useStore((state) => state.settings.theme);
   
   const completedCount = reminders.filter(r => r.completed).length;
   const totalCount = reminders.length;
@@ -101,7 +103,7 @@ export default function Stats() {
                     position: 'top', 
                     fontSize: 12, 
                     fontWeight: 'bold',
-                    fill: 'hsl(var(--foreground))',
+                    fill: theme === 'dark' ? '#ffffff' : '#000000',
                     offset: 4
                   }}
                 >
