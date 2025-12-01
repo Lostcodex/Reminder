@@ -4,8 +4,8 @@ import { useUserStore } from './userContext';
 const API_BASE = '/api';
 
 function getHeaders() {
-  const sessionId = useUserStore.getState().sessionId;
-  return { 'x-session-id': sessionId };
+  const token = useUserStore.getState().token;
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
 export const api = {

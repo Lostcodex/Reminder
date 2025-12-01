@@ -2,33 +2,52 @@ import { useUserStore } from './userContext';
 
 const API_BASE = '/api';
 
+function getAuthHeader() {
+  const token = useUserStore.getState().token;
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
 export const userApi = {
-  init: async () => {
-    const sessionId = useUserStore.getState().sessionId;
-    const res = await fetch(`${API_BASE}/auth/init`, {
+  register: async (username: string, password: string, name?: string) => {
+    const res = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
-      headers: { 'x-session-id': sessionId },
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password, name }),
     });
-    if (!res.ok) throw new Error('Failed to initialize user');
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Registration failed');
+    }
+    return res.json();
+  },
+
+  login: async (username: string, password: string) => {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Login failed');
+    }
     return res.json();
   },
 
   getProfile: async () => {
-    const sessionId = useUserStore.getState().sessionId;
     const res = await fetch(`${API_BASE}/user/profile`, {
-      headers: { 'x-session-id': sessionId },
+      headers: getAuthHeader(),
     });
     if (!res.ok) throw new Error('Failed to fetch profile');
     return res.json();
   },
 
   updateProfile: async (name: string) => {
-    const sessionId = useUserStore.getState().sessionId;
     const res = await fetch(`${API_BASE}/user/profile`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'x-session-id': sessionId,
+        ...getAuthHeader(),
       },
       body: JSON.stringify({ name }),
     });

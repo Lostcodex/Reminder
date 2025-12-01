@@ -211,11 +211,11 @@ export async function registerRoutes(
   // Delete all reminders
   app.delete("/api/reminders", async (req, res) => {
     try {
-      const user = await storage.getUserBySessionId((req as any).sessionId);
-      if (!user) {
+      const userId = (req as any).userId;
+      if (!userId) {
         return res.status(401).json({ error: "Not authenticated" });
       }
-      await storage.deleteAllReminders(user.id);
+      await storage.deleteAllReminders(userId);
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting all reminders:", error);

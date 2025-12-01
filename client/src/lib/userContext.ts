@@ -2,32 +2,46 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface UserState {
-  userId: string | null;
+  id: string | null;
+  username: string | null;
   name: string;
-  sessionId: string;
-  initializeSession: () => void;
-  setUserName: (name: string) => void;
+  token: string | null;
+  isAuthenticated: boolean;
+  setUserData: (user: { id: string; username: string; name: string }) => void;
+  setToken: (token: string) => void;
+  logout: () => void;
 }
 
 export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
-      userId: null,
+      id: null,
+      username: null,
       name: 'Friend',
-      sessionId: '',
+      token: null,
+      isAuthenticated: false,
 
-      initializeSession: () => {
-        set((state) => {
-          if (!state.sessionId) {
-            const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            return { sessionId: newSessionId };
-          }
-          return state;
+      setUserData: (user) => {
+        set({
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          isAuthenticated: true,
         });
       },
 
-      setUserName: (name) => {
-        set({ name });
+      setToken: (token) => {
+        set({ token, isAuthenticated: true });
+      },
+
+      logout: () => {
+        set({
+          id: null,
+          username: null,
+          name: 'Friend',
+          token: null,
+          isAuthenticated: false,
+        });
       },
     }),
     {
