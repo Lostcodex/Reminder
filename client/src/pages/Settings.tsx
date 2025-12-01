@@ -6,7 +6,7 @@ import { Bell, Volume2, Moon, Trash2, ChevronRight, Shield, HelpCircle, LucideIc
 
 function SettingItem({ icon: Icon, label, right }: { icon: LucideIcon, label: string, right: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between p-4 bg-white hover:bg-muted/20 transition-colors">
+    <div className="flex items-center justify-between p-4 bg-card hover:bg-muted/50 transition-colors">
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
           <Icon size={16} />
@@ -92,7 +92,7 @@ export default function Settings() {
                 }
               }}
               data-testid="button-delete-all"
-              className="w-full p-4 rounded-2xl bg-red-50 text-red-600 font-bold flex items-center justify-center gap-2 hover:bg-red-100 transition-colors"
+              className="w-full p-4 rounded-2xl bg-red-500/10 text-red-500 font-bold flex items-center justify-center gap-2 hover:bg-red-500/20 transition-colors"
             >
               <Trash2 size={18} />
               Delete All Data

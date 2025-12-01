@@ -50,16 +50,16 @@ export default function Stats() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="bg-white p-5 rounded-3xl border border-border/50 shadow-sm">
-            <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-3">
+          <div className="bg-card p-5 rounded-3xl border border-border/50 shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-green-500/20 text-green-500 flex items-center justify-center mb-3">
               <CheckCircle2 size={20} />
             </div>
             <div className="text-2xl font-bold text-foreground">{completedCount}</div>
             <div className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Completed</div>
           </div>
           
-          <div className="bg-white p-5 rounded-3xl border border-border/50 shadow-sm">
-            <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mb-3">
+          <div className="bg-card p-5 rounded-3xl border border-border/50 shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center mb-3">
               <TrendingUp size={20} />
             </div>
             <div className="text-2xl font-bold text-foreground">{completionRate}%</div>
@@ -67,7 +67,7 @@ export default function Stats() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-[32px] border border-border/50 shadow-sm">
+        <div className="bg-card p-6 rounded-[32px] border border-border/50 shadow-sm">
           <div className="flex items-center gap-2 mb-6">
             <Calendar size={18} className="text-muted-foreground" />
             <h3 className="font-bold text-foreground">Weekly Activity</h3>
@@ -80,16 +80,22 @@ export default function Stats() {
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 12, fill: '#94a3b8' }}
+                  tick={{ fontSize: 12, fill: 'currentColor', className: 'text-muted-foreground' }}
                   dy={10}
                 />
                 <Tooltip 
-                  cursor={{ fill: '#f1f5f9', radius: 8 }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  cursor={{ fill: 'hsl(var(--muted))', radius: 8 }}
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    border: 'none', 
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    backgroundColor: 'hsl(var(--card))',
+                    color: 'hsl(var(--foreground))'
+                  }}
                 />
                 <Bar dataKey="score" radius={[6, 6, 6, 6]} barSize={12}>
                   {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === 6 ? 'hsl(250 85% 65%)' : '#cbd5e1'} />
+                    <Cell key={`cell-${index}`} fill={index === 6 ? 'hsl(250 85% 65%)' : 'hsl(var(--muted))'} />
                   ))}
                 </Bar>
               </BarChart>

@@ -49,7 +49,7 @@ export function ReminderCard({ reminder, onToggle }: ReminderCardProps) {
           "flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-all duration-300",
           reminder.completed 
             ? "bg-green-500 border-green-500 text-white scale-95" 
-            : "bg-white border-muted-foreground/20 text-transparent hover:border-primary/50"
+            : "bg-card border-muted-foreground/20 text-transparent hover:border-primary/50"
         )}
       >
         <Check size={20} strokeWidth={3} />

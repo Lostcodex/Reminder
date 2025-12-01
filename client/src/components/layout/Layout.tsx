@@ -1,9 +1,10 @@
 import { Link, useLocation } from 'wouter';
 import { Home, BarChart2, Settings, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { AddReminderSheet } from '@/components/reminder/AddReminderSheet';
 import { useState } from 'react';
+import { useStore } from '@/lib/store';
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,6 +13,16 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const theme = useStore((state) => state.settings.theme);
+
+  // Ensure theme is applied on mount
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
@@ -20,17 +31,15 @@ export function Layout({ children }: LayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-background font-sans text-foreground flex justify-center">
+    <div className="min-h-screen bg-background font-sans text-foreground flex justify-center transition-colors duration-300">
       <div className="w-full max-w-md bg-background min-h-screen flex flex-col relative shadow-2xl shadow-black/5 overflow-hidden">
         
-        {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto pb-24 scrollbar-hide">
           {children}
         </main>
 
-        {/* Bottom Navigation */}
         <div className="fixed bottom-6 left-0 right-0 flex justify-center pointer-events-none z-50">
-          <div className="bg-white/90 backdrop-blur-lg border border-white/20 shadow-lg shadow-black/5 rounded-full px-6 py-3 flex items-center gap-8 pointer-events-auto max-w-xs w-full justify-between">
+          <div className="bg-card/90 backdrop-blur-lg border border-border/20 shadow-lg shadow-black/5 rounded-full px-6 py-3 flex items-center gap-8 pointer-events-auto max-w-xs w-full justify-between">
             {navItems.map((item) => {
               const isActive = location === item.path;
               return (
@@ -48,7 +57,6 @@ export function Layout({ children }: LayoutProps) {
               );
             })}
             
-            {/* Floating Add Button (Center-ish) */}
             <button 
               onClick={() => setIsAddOpen(true)}
               data-testid="button-add-reminder"

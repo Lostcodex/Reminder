@@ -56,7 +56,7 @@ export default function Home() {
               You have {todaysReminders.length - completedCount} tasks remaining today.
             </p>
           </div>
-          <div className="bg-white p-2 rounded-2xl shadow-sm border border-border/50">
+          <div className="bg-card p-2 rounded-2xl shadow-sm border border-border/50">
             <div className="text-center px-2">
               <div className="text-xs font-bold text-red-400 uppercase tracking-wider">{format(today, 'MMM')}</div>
               <div className="text-xl font-black text-foreground">{format(today, 'd')}</div>
@@ -68,9 +68,9 @@ export default function Home() {
           <button 
             onClick={handleQuickAddWater}
             data-testid="button-quick-water"
-            className="flex items-center gap-3 p-4 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 rounded-2xl transition-colors border border-cyan-100 shadow-sm group"
+            className="flex items-center gap-3 p-4 bg-cyan-500/10 dark:bg-cyan-500/20 hover:bg-cyan-500/20 dark:hover:bg-cyan-500/30 text-cyan-700 dark:text-cyan-300 rounded-2xl transition-colors border border-cyan-500/20 shadow-sm group"
           >
-            <div className="bg-white p-2 rounded-xl shadow-sm text-cyan-500 group-hover:scale-110 transition-transform relative">
+            <div className="bg-card p-2 rounded-xl shadow-sm text-cyan-500 group-hover:scale-110 transition-transform relative">
               <Droplets size={20} />
             </div>
             <div className="text-left">
@@ -79,8 +79,8 @@ export default function Home() {
             </div>
           </button>
 
-          <div className="flex items-center gap-3 p-4 bg-amber-50 text-amber-700 rounded-2xl border border-amber-100 shadow-sm">
-            <div className="bg-white p-2 rounded-xl shadow-sm text-amber-500">
+          <div className="flex items-center gap-3 p-4 bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-2xl border border-amber-500/20 shadow-sm">
+            <div className="bg-card p-2 rounded-xl shadow-sm text-amber-500">
               <Sun size={20} />
             </div>
             <div className="text-left">
