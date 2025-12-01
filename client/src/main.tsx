@@ -2,16 +2,35 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// Register service worker for background notifications
+// Register service worker for PWA and background notifications
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker
-    .register('/service-worker.js')
-    .catch((err) => console.log('Service Worker registration failed:', err));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/service-worker.js', { scope: '/' })
+      .then((registration) => {
+        console.log('[App] Service Worker registered successfully:', registration);
+        
+        // Check for updates periodically
+        setInterval(() => {
+          registration.update();
+        }, 60000);
+      })
+      .catch((err) => console.log('[App] Service Worker registration failed:', err));
+  });
 }
 
 // Request notification permission
 if ('Notification' in window && Notification.permission === 'default') {
-  Notification.requestPermission();
+  Notification.requestPermission().then((permission) => {
+    console.log('[App] Notification permission:', permission);
+  });
+}
+
+// Handle service worker updates
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    console.log('[App] Service Worker controller changed - app updated');
+  });
 }
 
 createRoot(document.getElementById("root")!).render(<App />);
