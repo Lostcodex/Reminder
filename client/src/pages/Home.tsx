@@ -2,6 +2,8 @@ import { Layout } from '@/components/layout/Layout';
 import { ReminderCard } from '@/components/reminder/ReminderCard';
 import { useReminders } from '@/hooks/useReminders';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useInitUser } from '@/hooks/useInitUser';
+import { useUserStore } from '@/lib/userContext';
 import { format, addHours, addDays, subDays } from 'date-fns';
 import { Droplets, Sun, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,6 +13,8 @@ import { useState } from 'react';
 export default function Home() {
   const { reminders, isLoading, createReminder, toggleReminder } = useReminders();
   useNotifications();
+  useInitUser();
+  const userName = useUserStore((state) => state.name);
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
@@ -83,7 +87,7 @@ export default function Home() {
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-3xl font-display font-extrabold text-foreground">
-              {isToday ? 'Hello, Friend!' : 'Your Reminders'} <span className="inline-block">👋</span>
+              {isToday ? `Hello, ${userName}!` : 'Your Reminders'} <span className="inline-block">👋</span>
             </h1>
             <p className="text-muted-foreground font-medium mt-1">
               You have {todaysReminders.length - completedCount} tasks {isToday ? 'remaining today' : 'on this day'}.

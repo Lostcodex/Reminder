@@ -28,6 +28,7 @@ export function Layout({ children }: LayoutProps) {
     { icon: Home, label: 'Home', path: '/' },
     { icon: BarChart2, label: 'Stats', path: '/stats' },
     { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: Settings, label: 'Profile', path: '/profile' },
   ];
 
   return (

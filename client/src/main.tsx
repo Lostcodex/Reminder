@@ -1,6 +1,10 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { useUserStore } from "./lib/userContext";
+
+// Initialize user session
+useUserStore.getState().initializeSession();
 
 // Register service worker for background notifications
 if ('serviceWorker' in navigator) {
