@@ -1,6 +1,9 @@
 import webpush from 'web-push';
 import { storage } from './storage';
+import { db } from './storage';
 import type { Reminder } from '@shared/schema';
+import { reminders } from '@shared/schema';
+import { and, eq } from 'drizzle-orm';
 
 // Set VAPID details
 webpush.setVapidDetails(
@@ -10,10 +13,12 @@ webpush.setVapidDetails(
 );
 
 export async function startPushNotificationService() {
-  // Check reminders every minute
+  console.log('Starting push notification service...');
+  
+  // Check reminders every 60 seconds
   setInterval(async () => {
     await checkAndSendNotifications();
-  }, 60000); // Check every 60 seconds
+  }, 60000);
 
   // Initial check
   await checkAndSendNotifications();
@@ -26,46 +31,49 @@ async function checkAndSendNotifications() {
     const currentDate = now.toISOString().split('T')[0];
 
     // Get all reminders that are due
-    const allReminders = await (storage as any).getAllRemindersForToday?.(currentDate);
-    if (!allReminders) return;
-
-    const dueReminders = allReminders.filter((reminder: Reminder) => 
-      reminder.date === currentDate &&
-      reminder.time === currentTime &&
-      !reminder.completed
+    const dueReminders = await db.select().from(reminders).where(
+      and(
+        eq(reminders.date, currentDate),
+        eq(reminders.time, currentTime),
+        eq(reminders.completed, false)
+      )
     );
 
     // Send push notifications for due reminders
-    for (const reminder of dueReminders) {
-      const subscriptions = await storage.getPushSubscriptionsByUserId(reminder.userId);
+    if (dueReminders.length > 0) {
+      console.log(`Found ${dueReminders.length} due reminders at ${currentTime} on ${currentDate}`);
       
-      for (const subscription of subscriptions) {
-        try {
-          const payload = JSON.stringify({
-            title: reminder.title,
-            body: reminder.notes || 'Time for your reminder!',
-            tag: reminder.id,
-          });
+      for (const reminder of dueReminders) {
+        const subscriptions = await storage.getPushSubscriptionsByUserId(reminder.userId);
+        
+        for (const subscription of subscriptions) {
+          try {
+            const payload = JSON.stringify({
+              title: reminder.title,
+              body: reminder.notes || 'Time for your reminder!',
+              tag: reminder.id,
+            });
 
-          await webpush.sendNotification(
-            {
-              endpoint: subscription.endpoint,
-              keys: {
-                auth: subscription.auth,
-                p256dh: subscription.p256dh,
+            await webpush.sendNotification(
+              {
+                endpoint: subscription.endpoint,
+                keys: {
+                  auth: subscription.auth,
+                  p256dh: subscription.p256dh,
+                },
               },
-            },
-            payload
-          );
-          
-          console.log(`Push sent for reminder: ${reminder.title}`);
-        } catch (error: any) {
-          if (error.statusCode === 410) {
-            // Subscription is expired or invalid, delete it
-            await storage.deletePushSubscription(subscription.endpoint);
-            console.log(`Deleted expired subscription: ${subscription.endpoint}`);
-          } else {
-            console.error('Error sending push:', error);
+              payload
+            );
+            
+            console.log(`✓ Push sent for reminder: ${reminder.title}`);
+          } catch (error: any) {
+            if (error.statusCode === 410) {
+              // Subscription is expired or invalid, delete it
+              await storage.deletePushSubscription(subscription.endpoint);
+              console.log(`Deleted expired subscription: ${subscription.endpoint}`);
+            } else {
+              console.error('Error sending push:', error);
+            }
           }
         }
       }

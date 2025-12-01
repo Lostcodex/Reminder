@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 
 const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql);
+export const db = drizzle(sql);
 
 export interface IStorage {
   getAllReminders(userId: string): Promise<Reminder[]>;
