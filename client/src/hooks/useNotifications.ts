@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useReminders } from './useReminders';
 import { useStore } from '@/lib/store';
+import { useUserStore } from '@/lib/userContext';
 
 export function useNotifications() {
   const { reminders } = useReminders();
@@ -98,11 +99,15 @@ async function subscribeToPushNotifications() {
     const authArray = authKey ? Array.from(new Uint8Array(authKey)) : [];
     const p256dhArray = p256dhKey ? Array.from(new Uint8Array(p256dhKey)) : [];
     
-    // Import useUserStore to get JWT token
-    const { useUserStore } = await import('@/lib/userContext');
+    // Get JWT token
     const token = useUserStore.getState().token;
     
-    await fetch('/api/push/subscribe', {
+    if (!token) {
+      console.error('No authentication token available for push subscription');
+      return;
+    }
+
+    const response = await fetch('/api/push/subscribe', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -115,7 +120,13 @@ async function subscribeToPushNotifications() {
       }),
     });
 
-    console.log('Successfully subscribed to push notifications');
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Push subscription failed:', error);
+      return;
+    }
+
+    console.log('✓ Successfully subscribed to push notifications');
   } catch (error) {
     console.error('Failed to subscribe to push notifications:', error);
   }

@@ -19,11 +19,15 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Request notification permission
-if ('Notification' in window && Notification.permission === 'default') {
-  Notification.requestPermission().then((permission) => {
-    console.log('[App] Notification permission:', permission);
-  });
+// Request notification permission immediately
+if ('Notification' in window) {
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().then((permission) => {
+      console.log('[App] Notification permission requested:', permission);
+    });
+  } else if (Notification.permission === 'granted') {
+    console.log('[App] Notifications already permitted');
+  }
 }
 
 // Handle service worker updates

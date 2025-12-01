@@ -19,15 +19,17 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 }
 
 export async function startPushNotificationService() {
-  console.log('Starting push notification service...');
+  console.log('✓ Starting push notification service...');
   
-  // Check reminders every 60 seconds
+  // Check reminders immediately on startup
+  await checkAndSendNotifications();
+  
+  // Then check reminders every 60 seconds
   setInterval(async () => {
     await checkAndSendNotifications();
   }, 60000);
 
-  // Initial check
-  await checkAndSendNotifications();
+  console.log('✓ Push notification service initialized');
 }
 
 async function checkAndSendNotifications() {
