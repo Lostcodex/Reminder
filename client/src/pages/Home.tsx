@@ -1,6 +1,7 @@
 import { Layout } from '@/components/layout/Layout';
 import { ReminderCard } from '@/components/reminder/ReminderCard';
 import { useReminders } from '@/hooks/useReminders';
+import { useNotifications } from '@/hooks/useNotifications';
 import { format, addHours } from 'date-fns';
 import { Droplets, Sun, CalendarDays } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,6 +9,9 @@ import { cn } from '@/lib/utils';
 
 export default function Home() {
   const { reminders, isLoading, createReminder, toggleReminder } = useReminders();
+  
+  // Initialize notification system (only on Home page where QueryClientProvider is active)
+  useNotifications();
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
 
