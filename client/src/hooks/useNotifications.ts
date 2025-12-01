@@ -98,11 +98,15 @@ async function subscribeToPushNotifications() {
     const authArray = authKey ? Array.from(new Uint8Array(authKey)) : [];
     const p256dhArray = p256dhKey ? Array.from(new Uint8Array(p256dhKey)) : [];
     
+    // Import useUserStore to get JWT token
+    const { useUserStore } = await import('@/lib/userContext');
+    const token = useUserStore.getState().token;
+    
     await fetch('/api/push/subscribe', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Session-Id': localStorage.getItem('sessionId') || '',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
         endpoint: subscription.endpoint,

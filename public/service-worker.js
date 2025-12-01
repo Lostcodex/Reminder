@@ -98,6 +98,7 @@ self.addEventListener('push', (event) => {
     tag: notificationData.tag || 'reminder',
     requireInteraction: true,
     vibrate: [200, 100, 200],
+    silent: false,
     actions: [
       {
         action: 'open',
@@ -111,7 +112,13 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(notificationData.title, options)
+    self.registration.showNotification(notificationData.title || 'DailyFlow Reminder', options)
+      .then(() => {
+        console.log('[Service Worker] Notification displayed successfully');
+      })
+      .catch((err) => {
+        console.error('[Service Worker] Failed to display notification:', err);
+      })
   );
 });
 
