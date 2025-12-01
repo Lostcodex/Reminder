@@ -46,7 +46,7 @@ export default function Register() {
                 placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="h-12 rounded-xl bg-muted/30 border-transparent focus:bg-white"
+                className="h-12 rounded-xl bg-white text-foreground border border-border/30 focus:border-primary"
                 disabled={loading}
                 data-testid="input-name"
               />
@@ -59,7 +59,7 @@ export default function Register() {
                 placeholder="Choose a username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="h-12 rounded-xl bg-muted/30 border-transparent focus:bg-white"
+                className="h-12 rounded-xl bg-white text-foreground border border-border/30 focus:border-primary"
                 disabled={loading}
                 data-testid="input-reg-username"
               />
@@ -72,7 +72,7 @@ export default function Register() {
                 placeholder="Create a password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 rounded-xl bg-muted/30 border-transparent focus:bg-white"
+                className="h-12 rounded-xl bg-white text-foreground border border-border/30 focus:border-primary"
                 disabled={loading}
                 data-testid="input-reg-password"
               />

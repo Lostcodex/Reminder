@@ -45,7 +45,7 @@ export default function Login() {
                 placeholder="Enter your username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="h-12 rounded-xl bg-muted/30 border-transparent focus:bg-white"
+                className="h-12 rounded-xl bg-white text-foreground border border-border/30 focus:border-primary"
                 disabled={loading}
                 data-testid="input-username"
               />
@@ -58,7 +58,7 @@ export default function Login() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 rounded-xl bg-muted/30 border-transparent focus:bg-white"
+                className="h-12 rounded-xl bg-white text-foreground border border-border/30 focus:border-primary"
                 disabled={loading}
                 data-testid="input-password"
               />
