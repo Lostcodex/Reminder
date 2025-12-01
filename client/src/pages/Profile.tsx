@@ -89,13 +89,6 @@ export default function Profile() {
               </div>
             </div>
           )}
-
-          <div className="mt-8 p-4 bg-muted/50 rounded-2xl">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">How it works</p>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Your name is saved to your session. Each user who opens this app gets their own unique session and reminders. Your data is completely separate from other users.
-            </p>
-          </div>
         </div>
       </div>
     </Layout>
