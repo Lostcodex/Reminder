@@ -93,7 +93,18 @@ export default function Stats() {
                     color: 'hsl(var(--foreground))'
                   }}
                 />
-                <Bar dataKey="score" radius={[6, 6, 6, 6]} barSize={12}>
+                <Bar 
+                  dataKey="score" 
+                  radius={[6, 6, 6, 6]} 
+                  barSize={12}
+                  label={{ 
+                    position: 'top', 
+                    fontSize: 12, 
+                    fontWeight: 'bold',
+                    fill: 'hsl(var(--foreground))',
+                    offset: 4
+                  }}
+                >
                   {data.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={index === 6 ? 'hsl(250 85% 65%)' : 'hsl(var(--muted))'} />
                   ))}
