@@ -146,12 +146,22 @@ export default function Stats() {
                   dataKey="score" 
                   radius={[6, 6, 6, 6]} 
                   barSize={12}
-                  label={{ 
-                    position: 'top', 
-                    fontSize: 12, 
-                    fontWeight: 'bold',
-                    fill: theme === 'dark' ? '#ffffff' : '#000000',
-                    offset: 4
+                  label={(props: any) => {
+                    const { x, y, width, value } = props;
+                    const labelX = x + width / 2;
+                    const labelY = value === 0 ? 20 : y - 5;
+                    return (
+                      <text 
+                        x={labelX} 
+                        y={labelY} 
+                        fill={theme === 'dark' ? '#ffffff' : '#000000'} 
+                        textAnchor="middle" 
+                        fontSize={12} 
+                        fontWeight="bold"
+                      >
+                        {value}
+                      </text>
+                    );
                   }}
                 >
                   {data.map((entry, index) => (
