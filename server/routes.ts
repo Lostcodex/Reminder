@@ -4,12 +4,30 @@ import { storage } from "./storage";
 import { insertReminderSchema, registerSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
 import { hashPassword, verifyPassword, generateToken, verifyToken } from "./auth";
+import fs from "fs";
+import path from "path";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
   
+  // Serve manifest.json for PWA
+  app.get('/manifest.json', (req, res) => {
+    const manifest = path.join(process.cwd(), 'public', 'manifest.json');
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.sendFile(manifest);
+  });
+
+  // Serve service-worker.js for PWA
+  app.get('/service-worker.js', (req, res) => {
+    const sw = path.join(process.cwd(), 'public', 'service-worker.js');
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    res.sendFile(sw);
+  });
+
   // Middleware to attach user from JWT token
   app.use((req, res, next) => {
     const authHeader = req.headers['authorization'];
