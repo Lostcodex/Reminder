@@ -38,15 +38,34 @@ export default function Stats() {
 
   const streak = calculateStreak();
 
-  const data = [
-    { name: 'Mon', score: 65 },
-    { name: 'Tue', score: 80 },
-    { name: 'Wed', score: 45 },
-    { name: 'Thu', score: 90 },
-    { name: 'Fri', score: 75 },
-    { name: 'Sat', score: 100 },
-    { name: 'Sun', score: completionRate },
-  ];
+  // Calculate weekly activity scores
+  const getWeeklyData = () => {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const weekData = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayIndex = date.getDay();
+      const dayName = dayNames[dayIndex];
+
+      const dayReminders = reminders.filter(r => r.date === dateStr);
+      let score = 0;
+      
+      if (dayReminders.length > 0) {
+        const completed = dayReminders.filter(r => r.completed).length;
+        score = Math.round((completed / dayReminders.length) * 100);
+      }
+
+      weekData.push({ name: dayName, score, date: dateStr });
+    }
+
+    return weekData;
+  };
+
+  const data = getWeeklyData();
 
   if (isLoading) {
     return (
