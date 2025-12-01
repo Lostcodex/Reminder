@@ -73,8 +73,7 @@ export default function Settings() {
         badge: '/favicon.png',
         tag: 'test-notification',
         requireInteraction: true,
-        vibrate: [300, 100, 300, 100, 300],
-      });
+      } as NotificationOptions & { vibrate?: number[] });
     }
 
     toast.success('Test notification sent!');

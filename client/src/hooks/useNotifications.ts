@@ -48,8 +48,7 @@ export function useNotifications() {
             badge: '/favicon.png',
             tag: reminder.id,
             requireInteraction: true,
-            vibrate: [300, 100, 300, 100, 300],
-          });
+          } as NotificationOptions & { vibrate?: number[] });
         }
       });
     }, 30000); // Check every 30 seconds
