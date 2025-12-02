@@ -5,25 +5,13 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { metaImagesPlugin } from "./vite-plugin-meta-images";
 
-const getPlugins = async () => {
-  const plugins = [
+export default defineConfig({
+  plugins: [
     react(),
     runtimeErrorOverlay(),
     tailwindcss(),
     metaImagesPlugin(),
-  ];
-
-  if (process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined) {
-    const cartographer = await import("@replit/vite-plugin-cartographer").then((m) => m.cartographer());
-    const devBanner = await import("@replit/vite-plugin-dev-banner").then((m) => m.devBanner());
-    plugins.push(cartographer, devBanner);
-  }
-
-  return plugins;
-};
-
-export default defineConfig(async () => ({
-  plugins: await getPlugins(),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
