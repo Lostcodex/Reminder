@@ -9,16 +9,17 @@ export interface ReminderNotification {
   time: string;
 }
 
-let notificationIdCounter = 1;
-const reminderIdMap = new Map<string, number>();
 let isInitialized = false;
 let isInitializing = false;
 
-function getNumericId(reminderId: string): number {
-  if (!reminderIdMap.has(reminderId)) {
-    reminderIdMap.set(reminderId, notificationIdCounter++);
+function hashStringToNumber(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
   }
-  return reminderIdMap.get(reminderId)!;
+  return Math.abs(hash) % 2147483647 || 1;
 }
 
 export async function initializeNativeNotifications(): Promise<boolean> {
@@ -96,18 +97,30 @@ export async function scheduleReminderNotification(reminder: ReminderNotificatio
       return;
     }
 
+    const notificationId = hashStringToNumber(reminder.id);
+    
+    try {
+      await LocalNotifications.cancel({ notifications: [{ id: notificationId }] });
+    } catch (e) {
+    }
+
     const notification: LocalNotificationSchema = {
-      id: getNumericId(reminder.id),
+      id: notificationId,
       title: reminder.title,
       body: reminder.body,
       schedule: {
         at: scheduleDate,
         allowWhileIdle: true,
+        repeats: false,
       },
       sound: 'alarm.wav',
       smallIcon: 'ic_stat_icon',
       iconColor: '#8B7FFF',
       channelId: 'reminders',
+      autoCancel: true,
+      extra: {
+        reminderId: reminder.id,
+      },
     };
 
     const scheduleOptions: ScheduleOptions = {
@@ -115,7 +128,7 @@ export async function scheduleReminderNotification(reminder: ReminderNotificatio
     };
 
     await LocalNotifications.schedule(scheduleOptions);
-    console.log(`Scheduled notification for ${reminder.title} at ${scheduleDate.toISOString()}`);
+    console.log(`Scheduled notification for ${reminder.title} (ID: ${notificationId}) at ${scheduleDate.toISOString()}`);
   } catch (error) {
     console.error('Failed to schedule notification:', error);
   }
@@ -127,12 +140,9 @@ export async function cancelReminderNotification(reminderId: string): Promise<vo
   }
 
   try {
-    const numericId = reminderIdMap.get(reminderId);
-    if (numericId) {
-      await LocalNotifications.cancel({ notifications: [{ id: numericId }] });
-      reminderIdMap.delete(reminderId);
-      console.log(`Cancelled notification for reminder ${reminderId}`);
-    }
+    const notificationId = hashStringToNumber(reminderId);
+    await LocalNotifications.cancel({ notifications: [{ id: notificationId }] });
+    console.log(`Cancelled notification for reminder ${reminderId}`);
   } catch (error) {
     console.error('Failed to cancel notification:', error);
   }
@@ -148,7 +158,6 @@ export async function cancelAllNotifications(): Promise<void> {
     if (pending.notifications.length > 0) {
       await LocalNotifications.cancel({ notifications: pending.notifications });
     }
-    reminderIdMap.clear();
     console.log('Cancelled all notifications');
   } catch (error) {
     console.error('Failed to cancel all notifications:', error);
@@ -161,14 +170,16 @@ export async function showLocalNotification(reminder: ReminderNotification): Pro
   }
 
   try {
+    const notificationId = hashStringToNumber(reminder.id);
     const notification: LocalNotificationSchema = {
-      id: getNumericId(reminder.id),
+      id: notificationId,
       title: reminder.title,
       body: reminder.body,
       sound: 'alarm.wav',
       smallIcon: 'ic_stat_icon',
       iconColor: '#8B7FFF',
       channelId: 'reminders',
+      autoCancel: true,
     };
 
     await LocalNotifications.schedule({
