@@ -15,7 +15,7 @@ export function useReminders() {
 
   const createMutation = useMutation({
     mutationFn: api.reminders.create,
-    onSuccess: (newReminder) => {
+    onSuccess: (newReminder: any) => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
       toast.success('Reminder created!');
       
@@ -36,7 +36,7 @@ export function useReminders() {
 
   const toggleMutation = useMutation({
     mutationFn: api.reminders.toggle,
-    onSuccess: (updatedReminder) => {
+    onSuccess: (updatedReminder: any) => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
       
       if (isNativeApp()) {
@@ -79,7 +79,7 @@ export function useReminders() {
       const result = await api.reminders.update(id, data);
       return result;
     },
-    onSuccess: (updatedReminder) => {
+    onSuccess: (updatedReminder: any) => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
       toast.success('Reminder updated!');
       

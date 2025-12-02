@@ -3,7 +3,7 @@ import { getApiBaseUrl } from './platform';
 
 const getApiBase = () => getApiBaseUrl();
 
-function getAuthHeader() {
+function getAuthHeader(): Record<string, string> {
   const token = useUserStore.getState().token;
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 }

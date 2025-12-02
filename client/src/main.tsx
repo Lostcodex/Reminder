@@ -1,6 +1,4 @@
 import { createRoot } from "react-dom/client";
-import { SplashScreen } from '@capacitor/splash-screen';
-import { StatusBar, Style } from '@capacitor/status-bar';
 import App from "./App";
 import "./index.css";
 import { isNativeApp } from './lib/platform';
@@ -9,24 +7,18 @@ import { createNotificationChannel, initializeNativeNotifications } from './lib/
 async function initializeApp() {
   if (isNativeApp()) {
     try {
-      await StatusBar.setStyle({ style: Style.Dark });
-      await StatusBar.setBackgroundColor({ color: '#8B7FFF' });
+      const { StatusBar } = await import('@capacitor/status-bar');
+      const { SplashScreen } = await import('@capacitor/splash-screen');
+      
+      StatusBar.setStyle({ style: 'DARK' as any }).catch(() => {});
+      StatusBar.setBackgroundColor({ color: '#8B7FFF' }).catch(() => {});
+      
+      createNotificationChannel().catch(() => {});
+      initializeNativeNotifications().catch(() => {});
+      
+      SplashScreen.hide().catch(() => {});
     } catch (e) {
-      console.log('StatusBar not available');
-    }
-
-    try {
-      await createNotificationChannel();
-      await initializeNativeNotifications();
-      console.log('[App] Native notifications initialized');
-    } catch (e) {
-      console.log('[App] Failed to initialize native notifications:', e);
-    }
-
-    try {
-      await SplashScreen.hide();
-    } catch (e) {
-      console.log('SplashScreen not available');
+      console.log('[App] Capacitor initialization warning:', e);
     }
   } else {
     if ('serviceWorker' in navigator) {
@@ -62,6 +54,5 @@ async function initializeApp() {
   }
 }
 
-initializeApp().then(() => {
-  createRoot(document.getElementById("root")!).render(<App />);
-});
+initializeApp();
+createRoot(document.getElementById("root")!).render(<App />);
