@@ -5,9 +5,10 @@ const config: CapacitorConfig = {
   appName: 'DailyFlow',
   webDir: 'dist/public',
   server: {
+    url: 'https://reminder-shine.onrender.com',
+    cleartext: false,
     androidScheme: 'https',
     iosScheme: 'https',
-    hostname: 'dailyflow.app',
     allowNavigation: ['reminder-shine.onrender.com', '*.onrender.com']
   },
   android: {
