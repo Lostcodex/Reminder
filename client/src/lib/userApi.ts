@@ -1,6 +1,7 @@
 import { useUserStore } from './userContext';
+import { getApiBaseUrl } from './platform';
 
-const API_BASE = '/api';
+const getApiBase = () => getApiBaseUrl();
 
 function getAuthHeader() {
   const token = useUserStore.getState().token;
@@ -9,7 +10,7 @@ function getAuthHeader() {
 
 export const userApi = {
   register: async (username: string, password: string, name?: string) => {
-    const res = await fetch(`${API_BASE}/auth/register`, {
+    const res = await fetch(`${getApiBase()}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password, name }),
@@ -22,7 +23,7 @@ export const userApi = {
   },
 
   login: async (username: string, password: string) => {
-    const res = await fetch(`${API_BASE}/auth/login`, {
+    const res = await fetch(`${getApiBase()}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
@@ -35,7 +36,7 @@ export const userApi = {
   },
 
   getProfile: async () => {
-    const res = await fetch(`${API_BASE}/user/profile`, {
+    const res = await fetch(`${getApiBase()}/user/profile`, {
       headers: getAuthHeader(),
     });
     if (!res.ok) throw new Error('Failed to fetch profile');
@@ -43,7 +44,7 @@ export const userApi = {
   },
 
   updateProfile: async (name: string) => {
-    const res = await fetch(`${API_BASE}/user/profile`, {
+    const res = await fetch(`${getApiBase()}/user/profile`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

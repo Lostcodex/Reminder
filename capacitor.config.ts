@@ -1,0 +1,34 @@
+import type { CapacitorConfig } from '@capacitor/cli';
+
+const config: CapacitorConfig = {
+  appId: 'com.dailyflow.reminder',
+  appName: 'DailyFlow',
+  webDir: 'dist/public',
+  android: {
+    allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: true
+  },
+  plugins: {
+    LocalNotifications: {
+      smallIcon: 'ic_stat_icon',
+      iconColor: '#8B7FFF',
+      sound: 'alarm'
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert']
+    },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: true,
+      backgroundColor: '#8B7FFF',
+      showSpinner: false
+    },
+    StatusBar: {
+      style: 'dark',
+      backgroundColor: '#8B7FFF'
+    }
+  }
+};
+
+export default config;

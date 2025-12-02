@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { type InsertReminder } from '@shared/schema';
 import { toast } from 'sonner';
+import { cancelReminderNotification, cancelAllNotifications, scheduleReminderNotification } from '@/lib/capacitorNotifications';
+import { isNativeApp } from '@/lib/platform';
 
 export function useReminders() {
   const queryClient = useQueryClient();
@@ -13,9 +15,19 @@ export function useReminders() {
 
   const createMutation = useMutation({
     mutationFn: api.reminders.create,
-    onSuccess: () => {
+    onSuccess: (newReminder) => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
       toast.success('Reminder created!');
+      
+      if (isNativeApp() && !newReminder.completed) {
+        scheduleReminderNotification({
+          id: newReminder.id,
+          title: newReminder.title,
+          body: newReminder.notes || 'Time for your reminder!',
+          date: newReminder.date,
+          time: newReminder.time,
+        });
+      }
     },
     onError: () => {
       toast.error('Failed to create reminder');
@@ -24,8 +36,22 @@ export function useReminders() {
 
   const toggleMutation = useMutation({
     mutationFn: api.reminders.toggle,
-    onSuccess: () => {
+    onSuccess: (updatedReminder) => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      
+      if (isNativeApp()) {
+        if (updatedReminder.completed) {
+          cancelReminderNotification(updatedReminder.id);
+        } else {
+          scheduleReminderNotification({
+            id: updatedReminder.id,
+            title: updatedReminder.title,
+            body: updatedReminder.notes || 'Time for your reminder!',
+            date: updatedReminder.date,
+            time: updatedReminder.time,
+          });
+        }
+      }
     },
     onError: () => {
       toast.error('Failed to update reminder');
@@ -33,7 +59,12 @@ export function useReminders() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: api.reminders.delete,
+    mutationFn: async (id: string) => {
+      if (isNativeApp()) {
+        await cancelReminderNotification(id);
+      }
+      return api.reminders.delete(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
       toast.success('Reminder deleted');
@@ -44,11 +75,24 @@ export function useReminders() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<InsertReminder> }) =>
-      api.reminders.update(id, data),
-    onSuccess: () => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertReminder> }) => {
+      const result = await api.reminders.update(id, data);
+      return result;
+    },
+    onSuccess: (updatedReminder) => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
       toast.success('Reminder updated!');
+      
+      if (isNativeApp() && !updatedReminder.completed) {
+        cancelReminderNotification(updatedReminder.id);
+        scheduleReminderNotification({
+          id: updatedReminder.id,
+          title: updatedReminder.title,
+          body: updatedReminder.notes || 'Time for your reminder!',
+          date: updatedReminder.date,
+          time: updatedReminder.time,
+        });
+      }
     },
     onError: () => {
       toast.error('Failed to update reminder');
@@ -56,7 +100,12 @@ export function useReminders() {
   });
 
   const deleteAllMutation = useMutation({
-    mutationFn: api.reminders.deleteAll,
+    mutationFn: async () => {
+      if (isNativeApp()) {
+        await cancelAllNotifications();
+      }
+      return api.reminders.deleteAll();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
       toast.success('All reminders deleted');

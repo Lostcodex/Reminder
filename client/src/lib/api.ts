@@ -1,7 +1,8 @@
 import { type Reminder, type InsertReminder } from '@shared/schema';
 import { useUserStore } from './userContext';
+import { getApiBaseUrl } from './platform';
 
-const API_BASE = '/api';
+const getApiBase = () => getApiBaseUrl();
 
 function getHeaders() {
   const token = useUserStore.getState().token;
@@ -11,7 +12,7 @@ function getHeaders() {
 export const api = {
   reminders: {
     getAll: async (): Promise<Reminder[]> => {
-      const res = await fetch(`${API_BASE}/reminders`, {
+      const res = await fetch(`${getApiBase()}/reminders`, {
         headers: getHeaders(),
       });
       if (!res.ok) throw new Error('Failed to fetch reminders');
@@ -19,7 +20,7 @@ export const api = {
     },
 
     create: async (reminder: InsertReminder): Promise<Reminder> => {
-      const res = await fetch(`${API_BASE}/reminders`, {
+      const res = await fetch(`${getApiBase()}/reminders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...getHeaders() },
         body: JSON.stringify(reminder),
@@ -29,7 +30,7 @@ export const api = {
     },
 
     update: async (id: string, reminder: Partial<InsertReminder>): Promise<Reminder> => {
-      const res = await fetch(`${API_BASE}/reminders/${id}`, {
+      const res = await fetch(`${getApiBase()}/reminders/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...getHeaders() },
         body: JSON.stringify(reminder),
@@ -39,7 +40,7 @@ export const api = {
     },
 
     toggle: async (id: string): Promise<Reminder> => {
-      const res = await fetch(`${API_BASE}/reminders/${id}/toggle`, {
+      const res = await fetch(`${getApiBase()}/reminders/${id}/toggle`, {
         method: 'PATCH',
         headers: getHeaders(),
       });
@@ -48,7 +49,7 @@ export const api = {
     },
 
     delete: async (id: string): Promise<void> => {
-      const res = await fetch(`${API_BASE}/reminders/${id}`, {
+      const res = await fetch(`${getApiBase()}/reminders/${id}`, {
         method: 'DELETE',
         headers: getHeaders(),
       });
@@ -56,7 +57,7 @@ export const api = {
     },
 
     deleteAll: async (): Promise<void> => {
-      const res = await fetch(`${API_BASE}/reminders`, {
+      const res = await fetch(`${getApiBase()}/reminders`, {
         method: 'DELETE',
         headers: getHeaders(),
       });
