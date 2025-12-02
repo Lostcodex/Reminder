@@ -4,10 +4,8 @@ import { useStore } from '@/lib/store';
 import { useUserStore } from '@/lib/userContext';
 import { isNativeApp, getBaseUrl } from '@/lib/platform';
 import {
-  initializeNativeNotifications,
   scheduleReminderNotification,
   cancelReminderNotification,
-  createNotificationChannel,
   checkPermissions,
 } from '@/lib/capacitorNotifications';
 import type { Reminder } from '@shared/schema';
@@ -16,39 +14,25 @@ export function useNotifications() {
   const { reminders } = useReminders();
   const notificationsEnabled = useStore((state: any) => state.settings.notifications);
 
-  const initNativeNotifications = useCallback(async () => {
-    if (isNativeApp()) {
-      await createNotificationChannel();
-      const success = await initializeNativeNotifications();
-      if (success) {
-        console.log('Native notifications initialized');
-      }
-    }
-  }, []);
-
   useEffect(() => {
-    if (!notificationsEnabled) return;
+    if (!notificationsEnabled || isNativeApp()) return;
 
-    if (isNativeApp()) {
-      initNativeNotifications();
-    } else {
-      if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission().then((permission) => {
-          if (permission === 'granted') {
-            subscribeToPushNotifications();
-          }
-        });
-      } else if (Notification.permission === 'granted') {
-        subscribeToPushNotifications();
-      }
-
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js').catch((err) => {
-          console.log('Service Worker registration failed:', err);
-        });
-      }
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          subscribeToPushNotifications();
+        }
+      });
+    } else if (Notification.permission === 'granted') {
+      subscribeToPushNotifications();
     }
-  }, [notificationsEnabled, initNativeNotifications]);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js').catch((err) => {
+        console.log('Service Worker registration failed:', err);
+      });
+    }
+  }, [notificationsEnabled]);
 
   useEffect(() => {
     if (!notificationsEnabled || reminders.length === 0) return;
