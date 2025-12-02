@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import { isNativeApp } from './lib/platform';
-import { createNotificationChannel, initializeNativeNotifications } from './lib/capacitorNotifications';
+import { createNotificationChannel } from './lib/capacitorNotifications';
 
 async function initializeCapacitor() {
   if (!isNativeApp()) return;
@@ -23,10 +23,6 @@ async function initializeCapacitor() {
     }
     
     await createNotificationChannel();
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    await initializeNativeNotifications();
     
     console.log('[App] Capacitor initialized successfully');
   } catch (e) {
