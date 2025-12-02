@@ -27,19 +27,37 @@ export async function initializeNativeNotifications(): Promise<boolean> {
   }
 
   try {
-    const localPermission = await LocalNotifications.requestPermissions();
-    if (localPermission.display !== 'granted') {
-      console.log('Local notification permission denied');
-      return false;
+    const existingLocalPerm = await LocalNotifications.checkPermissions();
+    let localGranted = existingLocalPerm.display === 'granted';
+    
+    if (!localGranted) {
+      const localPermission = await LocalNotifications.requestPermissions();
+      localGranted = localPermission.display === 'granted';
+      if (!localGranted) {
+        console.log('Local notification permission denied');
+        return false;
+      }
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
 
-    const pushPermission = await PushNotifications.requestPermissions();
-    if (pushPermission.receive !== 'granted') {
-      console.log('Push notification permission denied');
-    }
-
-    await registerPushNotifications();
     setupNotificationListeners();
+
+    const existingPushPerm = await PushNotifications.checkPermissions();
+    let pushGranted = existingPushPerm.receive === 'granted';
+    
+    if (!pushGranted) {
+      const pushPermission = await PushNotifications.requestPermissions();
+      pushGranted = pushPermission.receive === 'granted';
+      if (!pushGranted) {
+        console.log('Push notification permission denied, continuing with local only');
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+
+    if (pushGranted) {
+      await registerPushNotifications();
+    }
 
     console.log('Native notifications initialized successfully');
     return true;

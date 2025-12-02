@@ -4,22 +4,38 @@ import "./index.css";
 import { isNativeApp } from './lib/platform';
 import { createNotificationChannel, initializeNativeNotifications } from './lib/capacitorNotifications';
 
-if (isNativeApp()) {
+async function initializeCapacitor() {
+  if (!isNativeApp()) return;
+  
   try {
-    import('@capacitor/status-bar').then(async (m) => {
-      await m.StatusBar.setStyle({ style: 'DARK' as any }).catch(() => {});
-      await m.StatusBar.setBackgroundColor({ color: '#8B7FFF' }).catch(() => {});
-    });
+    const [statusBarModule, splashScreenModule] = await Promise.all([
+      import('@capacitor/status-bar').catch(() => null),
+      import('@capacitor/splash-screen').catch(() => null),
+    ]);
     
-    import('@capacitor/splash-screen').then(async (m) => {
-      await m.SplashScreen.hide().catch(() => {});
-    });
+    if (statusBarModule) {
+      await statusBarModule.StatusBar.setStyle({ style: 'DARK' as any }).catch(() => {});
+      await statusBarModule.StatusBar.setBackgroundColor({ color: '#8B7FFF' }).catch(() => {});
+    }
     
-    createNotificationChannel().catch(() => {});
-    initializeNativeNotifications().catch(() => {});
+    if (splashScreenModule) {
+      await splashScreenModule.SplashScreen.hide().catch(() => {});
+    }
+    
+    await createNotificationChannel();
+    
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    await initializeNativeNotifications();
+    
+    console.log('[App] Capacitor initialized successfully');
   } catch (e) {
     console.log('[App] Capacitor initialization warning:', e);
   }
+}
+
+if (isNativeApp()) {
+  initializeCapacitor();
 } else {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
