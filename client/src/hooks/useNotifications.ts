@@ -38,14 +38,18 @@ export function useNotifications() {
     if (!notificationsEnabled || reminders.length === 0) return;
 
     if (isNativeApp()) {
-      reminders.forEach((reminder: Reminder) => {
-        if (!reminder.completed) {
-          scheduleReminderNotification({
-            id: reminder.id,
-            title: reminder.title,
-            body: reminder.notes || 'Time for your reminder!',
-            date: reminder.date,
-            time: reminder.time,
+      checkPermissions().then((hasPermission) => {
+        if (hasPermission) {
+          reminders.forEach((reminder: Reminder) => {
+            if (!reminder.completed) {
+              scheduleReminderNotification({
+                id: reminder.id,
+                title: reminder.title,
+                body: reminder.notes || 'Time for your reminder!',
+                date: reminder.date,
+                time: reminder.time,
+              });
+            }
           });
         }
       });
