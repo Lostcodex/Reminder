@@ -4,15 +4,36 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Bell, Moon, Sun, Info } from 'lucide-react';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { isNativeApp } from '@/lib/platform';
+import { initializeNativeNotifications, checkPermissions, showLocalNotification } from '@/lib/capacitorNotifications';
 
 export default function Settings() {
   const { settings, updateSettings } = useStore();
   const [showNotificationGuide, setShowNotificationGuide] = useState(false);
+  const [nativePermissionGranted, setNativePermissionGranted] = useState(false);
+
+  useEffect(() => {
+    if (isNativeApp()) {
+      checkPermissions().then(setNativePermissionGranted);
+    }
+  }, []);
 
   const handleEnableNotifications = async () => {
+    if (isNativeApp()) {
+      const success = await initializeNativeNotifications();
+      if (success) {
+        setNativePermissionGranted(true);
+        updateSettings({ notifications: true });
+        toast.success('Notifications enabled!');
+        setTimeout(handleTestNotification, 500);
+      } else {
+        toast.error('Failed to enable notifications');
+      }
+      return;
+    }
+
     if (Notification.permission === 'granted') {
-      // Already granted, just test
       handleTestNotification();
       return;
     }
@@ -22,7 +43,6 @@ export default function Settings() {
       return;
     }
 
-    // Request permission
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       updateSettings({ notifications: true });
@@ -34,12 +54,23 @@ export default function Settings() {
   };
 
   const handleTestNotification = async () => {
+    if (isNativeApp()) {
+      await showLocalNotification({
+        id: 'test-' + Date.now(),
+        title: 'Test Notification',
+        body: 'This is how your reminders will alert you!',
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toTimeString().slice(0, 5),
+      });
+      toast.success('Test notification sent!');
+      return;
+    }
+
     if (Notification.permission !== 'granted') {
       toast.error('Notification permission not granted');
       return;
     }
 
-    // Play alarm sound
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const now = audioContext.currentTime;
@@ -52,7 +83,6 @@ export default function Settings() {
       osc.frequency.setValueAtTime(800, now);
       gain.gain.setValueAtTime(0.3, now);
 
-      // Create alarm pattern: 3 beeps
       for (let i = 0; i < 3; i++) {
         osc.frequency.setValueAtTime(800, now + i * 0.5);
         gain.gain.setValueAtTime(0.3, now + i * 0.5);
@@ -65,10 +95,9 @@ export default function Settings() {
       console.log('Audio playback not available');
     }
 
-    // Show test notification
     if (typeof window !== 'undefined' && 'Notification' in window) {
       new Notification('Test Notification', {
-        body: 'This is how your reminders will alert you! 🔔',
+        body: 'This is how your reminders will alert you!',
         icon: '/favicon.png',
         badge: '/favicon.png',
         tag: 'test-notification',
@@ -78,6 +107,15 @@ export default function Settings() {
 
     toast.success('Test notification sent!');
   };
+
+  const getNotificationStatus = () => {
+    if (isNativeApp()) {
+      return nativePermissionGranted ? 'granted' : 'default';
+    }
+    return typeof Notification !== 'undefined' ? Notification.permission : 'default';
+  };
+
+  const notificationStatus = getNotificationStatus();
 
   return (
     <Layout>
@@ -104,9 +142,9 @@ export default function Settings() {
                 className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90"
                 data-testid="button-enable-notifications"
               >
-                {Notification.permission === 'granted' ? 'Test Notification' : 'Enable Notifications'}
+                {notificationStatus === 'granted' ? 'Test Notification' : 'Enable Notifications'}
               </Button>
-              {Notification.permission === 'granted' && (
+              {notificationStatus === 'granted' && (
                 <Switch
                   checked={settings.notifications}
                   onCheckedChange={(checked) => updateSettings({ notifications: checked })}
@@ -116,12 +154,12 @@ export default function Settings() {
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-3">
-              Status: <span className="font-bold">{Notification.permission === 'granted' ? '✓ Enabled' : Notification.permission === 'denied' ? '✗ Blocked' : 'Not set'}</span>
+              Status: <span className="font-bold">{notificationStatus === 'granted' ? '✓ Enabled' : notificationStatus === 'denied' ? '✗ Blocked' : 'Not set'}</span>
             </p>
           </div>
 
-          {/* Permission Denied Guide */}
-          {showNotificationGuide && Notification.permission === 'denied' && (
+          {/* Permission Denied Guide - Only for web */}
+          {!isNativeApp() && showNotificationGuide && notificationStatus === 'denied' && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-3xl p-6">
               <div className="flex items-start gap-3 mb-4">
                 <Info size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
@@ -180,7 +218,12 @@ export default function Settings() {
           <div className="bg-muted/50 p-4 rounded-2xl">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">How Notifications Work</p>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              When a reminder is due, you'll hear 3 beeps and see a notification on your screen. Notifications work even if the app is closed or in the background!
+              When a reminder is due, you'll see a notification on your screen.
+              {isNativeApp() && (
+                <span className="block mt-2 text-primary font-medium">
+                  Tip: For reliable notifications when the app is closed, go to Settings → Apps → DailyFlow → Battery and select "Unrestricted" to prevent Android from blocking alarms.
+                </span>
+              )}
             </p>
           </div>
         </div>
