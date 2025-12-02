@@ -54,7 +54,7 @@ export function useNotifications() {
     if (!notificationsEnabled || reminders.length === 0) return;
 
     if (isNativeApp()) {
-      reminders.forEach((reminder) => {
+      reminders.forEach((reminder: Reminder) => {
         if (!reminder.completed) {
           scheduleReminderNotification({
             id: reminder.id,
@@ -71,7 +71,7 @@ export function useNotifications() {
         const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
         const currentDate = now.toISOString().split('T')[0];
 
-        reminders.forEach((reminder) => {
+        reminders.forEach((reminder: Reminder) => {
           if (
             reminder.date === currentDate &&
             reminder.time === currentTime &&
