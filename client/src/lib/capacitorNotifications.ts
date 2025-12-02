@@ -1,7 +1,5 @@
 import { LocalNotifications, LocalNotificationSchema, ScheduleOptions } from '@capacitor/local-notifications';
-import { PushNotifications, Token, ActionPerformed, PushNotificationSchema } from '@capacitor/push-notifications';
-import { isNativeApp, getApiBaseUrl } from './platform';
-import { useUserStore } from './userContext';
+import { isNativeApp } from './platform';
 
 export interface ReminderNotification {
   id: string;
@@ -13,6 +11,8 @@ export interface ReminderNotification {
 
 let notificationIdCounter = 1;
 const reminderIdMap = new Map<string, number>();
+let isInitialized = false;
+let isInitializing = false;
 
 function getNumericId(reminderId: string): number {
   if (!reminderIdMap.has(reminderId)) {
@@ -26,6 +26,18 @@ export async function initializeNativeNotifications(): Promise<boolean> {
     return false;
   }
 
+  if (isInitialized) {
+    console.log('Native notifications already initialized');
+    return true;
+  }
+
+  if (isInitializing) {
+    console.log('Native notifications initialization already in progress');
+    return false;
+  }
+
+  isInitializing = true;
+
   try {
     const existingLocalPerm = await LocalNotifications.checkPermissions();
     let localGranted = existingLocalPerm.display === 'granted';
@@ -35,98 +47,37 @@ export async function initializeNativeNotifications(): Promise<boolean> {
       localGranted = localPermission.display === 'granted';
       if (!localGranted) {
         console.log('Local notification permission denied');
+        isInitializing = false;
         return false;
       }
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     setupNotificationListeners();
 
-    const existingPushPerm = await PushNotifications.checkPermissions();
-    let pushGranted = existingPushPerm.receive === 'granted';
-    
-    if (!pushGranted) {
-      const pushPermission = await PushNotifications.requestPermissions();
-      pushGranted = pushPermission.receive === 'granted';
-      if (!pushGranted) {
-        console.log('Push notification permission denied, continuing with local only');
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-    }
-
-    if (pushGranted) {
-      await registerPushNotifications();
-    }
-
-    console.log('Native notifications initialized successfully');
+    isInitialized = true;
+    isInitializing = false;
+    console.log('Native notifications initialized successfully (Local only)');
     return true;
   } catch (error) {
     console.error('Failed to initialize native notifications:', error);
+    isInitializing = false;
     return false;
   }
 }
 
-async function registerPushNotifications(): Promise<void> {
+function setupNotificationListeners(): void {
   try {
-    await PushNotifications.register();
-
-    PushNotifications.addListener('registration', async (token: Token) => {
-      console.log('Push registration token:', token.value);
-      
-      const userToken = useUserStore.getState().token;
-      if (userToken) {
-        try {
-          await fetch(`${getApiBaseUrl()}/push/register-device`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${userToken}`,
-            },
-            body: JSON.stringify({
-              token: token.value,
-              platform: 'android',
-            }),
-          });
-          console.log('Device registered for push notifications');
-        } catch (error) {
-          console.error('Failed to register device:', error);
-        }
-      }
+    LocalNotifications.addListener('localNotificationReceived', (notification) => {
+      console.log('Local notification received:', notification);
     });
 
-    PushNotifications.addListener('registrationError', (error) => {
-      console.error('Push registration error:', error);
+    LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
+      console.log('Local notification action performed:', action);
     });
   } catch (error) {
-    console.error('Failed to register push notifications:', error);
+    console.error('Failed to setup notification listeners:', error);
   }
-}
-
-function setupNotificationListeners(): void {
-  LocalNotifications.addListener('localNotificationReceived', (notification) => {
-    console.log('Local notification received:', notification);
-  });
-
-  LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
-    console.log('Local notification action performed:', action);
-  });
-
-  PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-    console.log('Push notification received:', notification);
-    
-    showLocalNotification({
-      id: notification.id || 'push',
-      title: notification.title || 'Reminder',
-      body: notification.body || 'You have a reminder!',
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().slice(0, 5),
-    });
-  });
-
-  PushNotifications.addListener('pushNotificationActionPerformed', (action: ActionPerformed) => {
-    console.log('Push notification action performed:', action);
-  });
 }
 
 export async function scheduleReminderNotification(reminder: ReminderNotification): Promise<void> {
